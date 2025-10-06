@@ -1,0 +1,44 @@
+# YANTRA.AI Backend Dependencies
+
+# FastAPI and server
+fastapi
+uvicorn
+pydantic
+
+# Mathematical and scientific computing
+numpy
+sympy
+scipy
+
+# Astronomical calculations
+skyfield
+pyephem
+astropy
+
+# Date and time handling
+python-dateutil
+
+# Data processing and export
+pandas
+matplotlib
+Pillow
+
+# PDF generation for blueprints
+reportlab
+fpdf2
+
+# CAD export capabilities
+ezdxf
+
+# API documentation
+python-multipart
+
+# Development and testing
+pytest
+pytest-asyncio
+black
+flake8
+
+# Optional: For advanced celestial mechanics
+jplephem
+sgp4

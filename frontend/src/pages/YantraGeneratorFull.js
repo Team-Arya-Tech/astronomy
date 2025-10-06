@@ -168,6 +168,11 @@ const YantraGenerator = () => {
     setCoordinates(presets[preset]);
   };
 
+  // Helper function to convert full yantra name to short format for 3D viewer
+  const getShortYantraType = (fullType) => {
+    return fullType.replace('_yantra', '');
+  };
+
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Typography variant="h3" align="center" gutterBottom sx={{ color: 'white', fontWeight: 'bold' }}>
@@ -362,7 +367,7 @@ const YantraGenerator = () => {
                 <Box sx={{ height: '500px' }}>
                   {yantraSpecs ? (
                     <YantraViewer3D 
-                      yantraType={selectedYantra} 
+                      yantraType={getShortYantraType(selectedYantra)} 
                       specs={yantraSpecs}
                       astronomicalData={astronomicalData}
                     />

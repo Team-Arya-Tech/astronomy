@@ -42,7 +42,7 @@ const YantraGenerator = () => {
     longitude: '',
     elevation: '0'
   });
-  const [selectedYantra, setSelectedYantra] = useState('samrat');
+  const [selectedYantra, setSelectedYantra] = useState('samrat_yantra');
   const [yantraSpecs, setYantraSpecs] = useState(null);
   const [availableYantras, setAvailableYantras] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -65,9 +65,9 @@ const YantraGenerator = () => {
     } catch (err) {
       console.log('Using default yantra types');
       setAvailableYantras([
-        { name: 'samrat', display_name: 'Samrat Yantra (Great Sundial)', description: 'The largest and most accurate sundial for local solar time' },
-        { name: 'rama', display_name: 'Rama Yantra (Cylindrical)', description: 'Cylindrical instrument for measuring altitude and azimuth' },
-        { name: 'jai_prakash', display_name: 'Jai Prakash Yantra', description: 'Hemispherical sundial for celestial coordinate measurement' }
+        { id: 'samrat_yantra', name: 'Samrat Yantra (Great Sundial)', description: 'The largest and most accurate sundial for local solar time' },
+        { id: 'rama_yantra', name: 'Rama Yantra (Cylindrical)', description: 'Cylindrical instrument for measuring altitude and azimuth' },
+        { id: 'jai_prakash_yantra', name: 'Jai Prakash Yantra', description: 'Hemispherical sundial for celestial coordinate measurement' }
       ]);
     }
   };
@@ -97,7 +97,7 @@ const YantraGenerator = () => {
             longitude: parseFloat(coordinates.longitude),
             elevation: parseFloat(coordinates.elevation)
           },
-          yantra_type: selectedYantra + '_yantra',
+          yantra_type: selectedYantra,
           scale_factor: 1.0
         })
       });
@@ -197,8 +197,8 @@ const YantraGenerator = () => {
                   label="Yantra Type"
                 >
                   {availableYantras.map((yantra) => (
-                    <MenuItem key={yantra.name} value={yantra.name}>
-                      {yantra.display_name}
+                    <MenuItem key={yantra.id} value={yantra.id}>
+                      {yantra.name}
                     </MenuItem>
                   ))}
                 </Select>

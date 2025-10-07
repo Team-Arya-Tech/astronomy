@@ -463,65 +463,211 @@ const YantraGenerator = () => {
                 <Box sx={{ height: '500px', overflow: 'auto' }}>
                   {yantraSpecs ? (
                     <Box>
-                      <Accordion defaultExpanded>
-                        <AccordionSummary expandIcon={<ExpandMore />}>
-                          <Typography variant="h6">Yantra Dimensions</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                          <Paper sx={{ p: 2, bgcolor: '#f8f9fa' }}>
-                            <pre style={{ margin: 0, fontFamily: 'Consolas, monospace', fontSize: '0.875rem' }}>
-                              {JSON.stringify(yantraSpecs.dimensions, null, 2)}
-                            </pre>
-                          </Paper>
-                        </AccordionDetails>
-                      </Accordion>
+                      {/* Header with yantra info */}
+                      <Box sx={{ mb: 3, p: 2, bgcolor: 'background.paper', borderRadius: 2, borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
+                        <Typography variant="h5" sx={{ color: 'primary.main', fontWeight: 'bold', mb: 1 }}>
+                          {yantraSpecs.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Generated for {yantraSpecs.coordinates?.latitude}°N, {yantraSpecs.coordinates?.longitude}°E
+                        </Typography>
+                      </Box>
+
+                      {/* Key Dimensions Cards */}
+                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, color: 'primary.main' }}>
+                        <Architecture color="primary" />
+                        Primary Dimensions
+                      </Typography>
                       
-                      <Accordion>
-                        <AccordionSummary expandIcon={<ExpandMore />}>
-                          <Typography variant="h6">Location Details</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails>
-                          <Grid container spacing={2}>
-                            <Grid item xs={6}>
-                              <Typography><strong>Latitude:</strong> {yantraSpecs.coordinates?.latitude}°</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography><strong>Longitude:</strong> {yantraSpecs.coordinates?.longitude}°</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography><strong>Elevation:</strong> {yantraSpecs.coordinates?.elevation}m</Typography>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography><strong>Type:</strong> {yantraSpecs.yantra_type}</Typography>
-                            </Grid>
+                      <Grid container spacing={2} sx={{ mb: 3 }}>
+                        {Object.entries(yantraSpecs.dimensions || {}).slice(0, 6).map(([key, value]) => (
+                          <Grid item xs={12} sm={6} md={4} key={key}>
+                            <Card sx={{ 
+                              bgcolor: 'background.paper', 
+                              border: '1px solid',
+                              borderColor: 'divider',
+                              '&:hover': { 
+                                bgcolor: 'action.hover', 
+                                transform: 'translateY(-2px)',
+                                borderColor: 'primary.light'
+                              },
+                              transition: 'all 0.3s ease'
+                            }}>
+                              <CardContent sx={{ p: 2 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 1 }}>
+                                  {key.replace(/_/g, ' ')}
+                                </Typography>
+                                <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                  {typeof value === 'number' ? `${value.toFixed(2)}m` : value}
+                                </Typography>
+                              </CardContent>
+                            </Card>
                           </Grid>
+                        ))}
+                      </Grid>
+
+                      {/* Accuracy Metrics */}
+                      {yantraSpecs.accuracy_metrics && (
+                        <Box sx={{ mb: 3 }}>
+                          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'primary.main' }}>
+                            <Timeline color="primary" />
+                            Accuracy & Performance
+                          </Typography>
+                          <Grid container spacing={2}>
+                            {Object.entries(yantraSpecs.accuracy_metrics).map(([key, value]) => (
+                              <Grid item xs={12} sm={6} key={key}>
+                                <Box sx={{ 
+                                  p: 2, 
+                                  bgcolor: 'primary.light', 
+                                  borderRadius: 2,
+                                  border: '1px solid',
+                                  borderColor: 'primary.main',
+                                  opacity: 0.8
+                                }}>
+                                  <Typography variant="body2" color="primary.dark" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                    {key.replace(/_/g, ' ').toUpperCase()}
+                                  </Typography>
+                                  <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'primary.dark' }}>
+                                    {typeof value === 'number' ? 
+                                      (key.includes('latitude') || key.includes('longitude') ? `${value.toFixed(2)}°` :
+                                       key.includes('minutes') ? `±${value}min` :
+                                       key.includes('degrees') ? `±${value}°` :
+                                       key.includes('hours') ? `${value}hrs` : value) 
+                                      : value}
+                                  </Typography>
+                                </Box>
+                              </Grid>
+                            ))}
+                          </Grid>
+                        </Box>
+                      )}
+
+                      {/* Angular Measurements */}
+                      {yantraSpecs.angles && Object.keys(yantraSpecs.angles).length > 0 && (
+                        <Accordion>
+                          <AccordionSummary expandIcon={<ExpandMore />}>
+                            <Typography variant="h6" sx={{ color: 'secondary.main' }}>Angular Measurements</Typography>
+                          </AccordionSummary>
+                          <AccordionDetails>
+                            <Grid container spacing={2}>
+                              {Object.entries(yantraSpecs.angles).map(([key, value]) => (
+                                <Grid item xs={12} sm={6} md={4} key={key}>
+                                  <Box sx={{ 
+                                    p: 2, 
+                                    bgcolor: 'secondary.light',
+                                    borderRadius: 2,
+                                    border: '1px solid',
+                                    borderColor: 'secondary.main',
+                                    opacity: 0.8
+                                  }}>
+                                    <Typography variant="body2" color="secondary.dark" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                      {key.replace(/_/g, ' ').toUpperCase()}
+                                    </Typography>
+                                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'secondary.dark' }}>
+                                      {typeof value === 'number' ? `${value.toFixed(2)}°` : value}
+                                    </Typography>
+                                  </Box>
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </AccordionDetails>
+                        </Accordion>
+                      )}
+
+                      {/* Complete Dimensions Table */}
+                      <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMore />}>
+                          <Typography variant="h6" sx={{ color: 'primary.dark' }}>Complete Dimensions</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Box sx={{ 
+                            p: 2, 
+                            bgcolor: 'background.paper', 
+                            borderRadius: 2,
+                            border: '1px solid',
+                            borderColor: 'divider'
+                          }}>
+                            <Grid container spacing={1}>
+                              {Object.entries(yantraSpecs.dimensions || {}).map(([key, value]) => (
+                                <Grid item xs={12} sm={6} key={key}>
+                                  <Box sx={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between',
+                                    p: 1,
+                                    '&:hover': { bgcolor: 'action.hover' },
+                                    borderRadius: 1
+                                  }}>
+                                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.primary' }}>
+                                      {key.replace(/_/g, ' ').charAt(0).toUpperCase() + key.replace(/_/g, ' ').slice(1)}:
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ fontFamily: 'monospace', color: 'primary.main', fontWeight: 'bold' }}>
+                                      {typeof value === 'number' ? `${value.toFixed(3)}m` : value}
+                                    </Typography>
+                                  </Box>
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </Box>
                         </AccordionDetails>
                       </Accordion>
                       
+                      {/* Construction Notes */}
                       <Accordion>
                         <AccordionSummary expandIcon={<ExpandMore />}>
-                          <Typography variant="h6">Construction Notes</Typography>
+                          <Typography variant="h6" sx={{ color: 'primary.dark' }}>Construction Guide</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                          <Typography paragraph>
-                            <strong>Material Recommendations:</strong>
-                          </Typography>
-                          <Typography component="div">
-                            • Base: Sandstone or marble for stability<br/>
-                            • Gnomon: Brass or copper for precision<br/>
-                            • Markings: Engraved stone or metal inlays<br/>
-                            • Foundation: Concrete with proper leveling
-                          </Typography>
+                          <Box sx={{ mb: 3 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: 'primary.main' }}>
+                              📐 Material Recommendations
+                            </Typography>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} sm={6}>
+                                <Box sx={{ p: 2, bgcolor: 'primary.light', borderRadius: 2, opacity: 0.7 }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'primary.dark' }}>Base Structure:</Typography>
+                                  <Typography variant="body2" color="primary.dark">• Sandstone or marble for stability</Typography>
+                                  <Typography variant="body2" color="primary.dark">• Foundation: Reinforced concrete</Typography>
+                                  <Typography variant="body2" color="primary.dark">• Thickness: Minimum 0.5m</Typography>
+                                </Box>
+                              </Grid>
+                              <Grid item xs={12} sm={6}>
+                                <Box sx={{ p: 2, bgcolor: 'secondary.light', borderRadius: 2, opacity: 0.7 }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'secondary.dark' }}>Precision Components:</Typography>
+                                  <Typography variant="body2" color="secondary.dark">• Gnomon: Brass or copper</Typography>
+                                  <Typography variant="body2" color="secondary.dark">• Markings: Engraved stone/metal</Typography>
+                                  <Typography variant="body2" color="secondary.dark">• Surface: Smooth polished finish</Typography>
+                                </Box>
+                              </Grid>
+                            </Grid>
+                          </Box>
                           
-                          <Typography paragraph sx={{ mt: 2 }}>
-                            <strong>Alignment Instructions:</strong>
-                          </Typography>
-                          <Typography component="div">
-                            • Orient gnomon true north-south<br/>
-                            • Ensure base is perfectly level<br/>
-                            • Account for magnetic declination<br/>
-                            • Verify accuracy with GPS coordinates
-                          </Typography>
+                          <Box sx={{ mb: 3 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: 'primary.main' }}>
+                              🧭 Alignment Instructions
+                            </Typography>
+                            <Box sx={{ p: 2, bgcolor: 'primary.light', borderRadius: 2, opacity: 0.6 }}>
+                              <Typography variant="body2" sx={{ mb: 1, color: 'primary.dark' }}>• Orient gnomon along true north-south meridian</Typography>
+                              <Typography variant="body2" sx={{ mb: 1, color: 'primary.dark' }}>• Ensure base is perfectly level using spirit level</Typography>
+                              <Typography variant="body2" sx={{ mb: 1, color: 'primary.dark' }}>• Account for local magnetic declination</Typography>
+                              <Typography variant="body2" sx={{ mb: 1, color: 'primary.dark' }}>• Verify accuracy with GPS coordinates</Typography>
+                              <Typography variant="body2" color="primary.dark">• Test with known solar noon time</Typography>
+                            </Box>
+                          </Box>
+
+                          {yantraSpecs.construction_notes && yantraSpecs.construction_notes.length > 0 && (
+                            <Box>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 2, color: 'primary.main' }}>
+                                🔧 Specific Construction Notes
+                              </Typography>
+                              <Box sx={{ p: 2, bgcolor: 'secondary.light', borderRadius: 2, opacity: 0.7 }}>
+                                {yantraSpecs.construction_notes.map((note, index) => (
+                                  <Typography key={index} variant="body2" sx={{ mb: 1, color: 'secondary.dark' }}>
+                                    • {note}
+                                  </Typography>
+                                ))}
+                              </Box>
+                            </Box>
+                          )}
                         </AccordionDetails>
                       </Accordion>
                     </Box>

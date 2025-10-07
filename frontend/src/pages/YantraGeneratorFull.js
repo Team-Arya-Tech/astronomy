@@ -32,6 +32,7 @@ import {
   GetApp
 } from '@mui/icons-material';
 import YantraViewer3D from '../components/YantraViewer3DAdvanced';
+import YantraViewer2D from '../components/YantraViewer2D';
 
 const YantraGenerator = () => {
   const [coordinates, setCoordinates] = useState({
@@ -184,9 +185,26 @@ const YantraGenerator = () => {
   const exportBlueprint = async (format = 'blueprint') => {
     setExportLoading(true);
     try {
-      const url = `http://localhost:8000/yantras/export/${selectedYantra}?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&elevation=${coordinates.elevation}&format=${format}`;
-      window.open(url, '_blank');
-      setSuccess(`${format.toUpperCase()} export initiated successfully`);
+      const url = `http://localhost:8000/yantras/export/${selectedYantra}?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&elevation=${coordinates.elevation}&format=${format}&reference_location=${selectedReference}`;
+      
+      if (format === 'pdf' || format === 'svg') {
+        // For binary formats, download directly
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `yantra_${selectedYantra}_${selectedReference}.${format}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      } else {
+        // For other formats, open in new tab
+        window.open(url, '_blank');
+      }
+      
+      setSuccess(`${format.toUpperCase()} export completed successfully`);
     } catch (err) {
       setError('Export failed: ' + err.message);
     } finally {
@@ -356,11 +374,11 @@ const YantraGenerator = () => {
                 <Box sx={{ mt: 3 }}>
                   <Typography variant="h6" gutterBottom>Export Options</Typography>
                   <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid item xs={6} sm={4}>
                       <Button
                         fullWidth
                         variant="outlined"
-                        onClick={() => exportBlueprint('blueprint')}
+                        onClick={() => exportBlueprint('pdf')}
                         disabled={exportLoading}
                         startIcon={<Download />}
                         size="small"
@@ -368,7 +386,19 @@ const YantraGenerator = () => {
                         PDF Blueprint
                       </Button>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid item xs={6} sm={4}>
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        onClick={() => exportBlueprint('svg')}
+                        disabled={exportLoading}
+                        startIcon={<Download />}
+                        size="small"
+                      >
+                        SVG Drawing
+                      </Button>
+                    </Grid>
+                    <Grid item xs={6} sm={4}>
                       <Button
                         fullWidth
                         variant="outlined"
@@ -423,7 +453,8 @@ const YantraGenerator = () => {
               <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
                 <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
                   <Tab label="3D Visualization" icon={<Visibility />} />
-                  <Tab label="Specifications" icon={<Architecture />} />
+                  <Tab label="2D Blueprint" icon={<Architecture />} />
+                  <Tab label="Specifications" icon={<GetApp />} />
                 </Tabs>
               </Box>
               
@@ -460,6 +491,38 @@ const YantraGenerator = () => {
               )}
               
               {activeTab === 1 && (
+                <Box sx={{ height: '500px' }}>
+                  {yantraSpecs ? (
+                    <YantraViewer2D 
+                      yantraType={getShortYantraType(selectedYantra)} 
+                      specs={yantraSpecs}
+                      astronomicalData={astronomicalData}
+                    />
+                  ) : (
+                    <Box 
+                      sx={{ 
+                        height: '100%', 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        backgroundColor: '#f5f5f5',
+                        borderRadius: 2
+                      }}
+                    >
+                      <Architecture sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+                      <Typography variant="h6" color="text.secondary" align="center">
+                        Generate a yantra to see the 2D technical blueprint
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
+                        Perfect for construction and PDF export
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              )}
+              
+              {activeTab === 2 && (
                 <Box sx={{ height: '500px', overflow: 'auto' }}>
                   {yantraSpecs ? (
                     <Box>

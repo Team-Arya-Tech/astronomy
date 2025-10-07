@@ -5,6 +5,7 @@ RESTful API for the parametric geometry engine
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional
 from datetime import datetime
@@ -269,7 +270,8 @@ async def export_yantra_blueprint(
     latitude: float = Query(..., ge=-90, le=90),
     longitude: float = Query(..., ge=-180, le=180),
     elevation: float = Query(default=0.0),
-    format: str = Query(default="blueprint", description="Export format: blueprint or json")
+    format: str = Query(default="blueprint", description="Export format: blueprint, json, pdf, or svg"),
+    reference_location: str = Query(default="jaipur", description="Historical reference location")
 ):
     """Export yantra specifications in various formats"""
     
@@ -279,21 +281,36 @@ async def export_yantra_blueprint(
         
         # Generate yantra
         if yantra_type == "samrat_yantra":
-            specs = engine.generate_samrat_yantra(coords)
+            specs = engine.generate_samrat_yantra(coords, reference_location)
         elif yantra_type == "rama_yantra":
-            specs = engine.generate_rama_yantra(coords)
+            specs = engine.generate_rama_yantra(coords, reference_location)
         elif yantra_type == "jai_prakash_yantra":
-            specs = engine.generate_jai_prakash_yantra(coords)
+            specs = engine.generate_jai_prakash_yantra(coords, reference_location)
         elif yantra_type == "digamsa_yantra":
-            specs = engine.generate_digamsa_yantra(coords)
+            try:
+                specs = engine.generate_digamsa_yantra(coords, reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_digamsa_yantra(coords)
         elif yantra_type == "dhruva_protha_chakra":
-            specs = engine.generate_dhruva_protha_chakra(coords)
+            try:
+                specs = engine.generate_dhruva_protha_chakra(coords, reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_dhruva_protha_chakra(coords)
         elif yantra_type == "kapala_yantra":
-            specs = engine.generate_kapala_yantra(coords)
+            try:
+                specs = engine.generate_kapala_yantra(coords, reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_kapala_yantra(coords)
         elif yantra_type == "chakra_yantra":
-            specs = engine.generate_chakra_yantra(coords)
+            try:
+                specs = engine.generate_chakra_yantra(coords, reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_chakra_yantra(coords)
         elif yantra_type == "unnatamsa_yantra":
-            specs = engine.generate_unnatamsa_yantra(coords)
+            try:
+                specs = engine.generate_unnatamsa_yantra(coords, reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_unnatamsa_yantra(coords)
         else:
             raise HTTPException(
                 status_code=400,
@@ -301,12 +318,32 @@ async def export_yantra_blueprint(
             )
         
         # Export in requested format
-        exported = engine.export_specifications(specs, format)
-        
-        if format == "json":
-            return {"content": exported, "content_type": "application/json"}
+        if format == "pdf":
+            # Generate PDF blueprint
+            from blueprint_generator import BlueprintGenerator
+            pdf_generator = BlueprintGenerator()
+            pdf_content = pdf_generator.generate_pdf_blueprint(specs, coords, reference_location)
+            
+            return Response(
+                content=pdf_content,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename=yantra_{yantra_type}_{reference_location}.pdf"}
+            )
+        elif format == "svg":
+            # Generate SVG technical drawing
+            svg_content = engine.export_svg_blueprint(specs)
+            return Response(
+                content=svg_content,
+                media_type="image/svg+xml",
+                headers={"Content-Disposition": f"attachment; filename=yantra_{yantra_type}_{reference_location}.svg"}
+            )
         else:
-            return {"content": exported, "content_type": "text/plain"}
+            exported = engine.export_specifications(specs, format)
+            
+            if format == "json":
+                return {"content": exported, "content_type": "application/json"}
+            else:
+                return {"content": exported, "content_type": "text/plain"}
             
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

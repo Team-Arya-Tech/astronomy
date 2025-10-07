@@ -40,6 +40,7 @@ class CoordinatesInput(BaseModel):
 class YantraRequest(BaseModel):
     coordinates: CoordinatesInput
     yantra_type: str = Field(..., description="Type of yantra to generate")
+    reference_location: Optional[str] = Field(default="jaipur", description="Historical reference location")
     scale_factor: float = Field(default=1.0, gt=0, description="Scale factor for dimensions")
 
 class SolarPositionRequest(BaseModel):
@@ -76,6 +77,20 @@ async def root():
             "unnatamsa_yantra"
         ]
     }
+
+@app.get("/yantras/{yantra_type}/references")
+async def get_yantra_references(yantra_type: str):
+    """Get available historical references for a yantra type"""
+    try:
+        references = engine.get_available_references(yantra_type)
+        if not references:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No references found for yantra type: {yantra_type}"
+            )
+        return {"yantra_type": yantra_type, "references": references}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/yantras/available")
 async def get_available_yantras():
@@ -138,6 +153,9 @@ async def generate_yantra(request: YantraRequest):
     """Generate yantra specifications for given coordinates"""
     
     try:
+        print(f"Generating yantra: {request.yantra_type} at {request.coordinates.latitude}, {request.coordinates.longitude}")
+        print(f"Reference location: {request.reference_location}")
+        
         # Convert coordinates
         coords = Coordinates(
             latitude=request.coordinates.latitude,
@@ -147,21 +165,37 @@ async def generate_yantra(request: YantraRequest):
         
         # Generate yantra based on type
         if request.yantra_type == "samrat_yantra":
-            specs = engine.generate_samrat_yantra(coords)
+            specs = engine.generate_samrat_yantra(coords, request.reference_location)
         elif request.yantra_type == "rama_yantra":
-            specs = engine.generate_rama_yantra(coords)
+            specs = engine.generate_rama_yantra(coords, request.reference_location)
         elif request.yantra_type == "jai_prakash_yantra":
-            specs = engine.generate_jai_prakash_yantra(coords)
+            specs = engine.generate_jai_prakash_yantra(coords, request.reference_location)
         elif request.yantra_type == "digamsa_yantra":
-            specs = engine.generate_digamsa_yantra(coords)
+            # Check if function supports reference_location parameter
+            try:
+                specs = engine.generate_digamsa_yantra(coords, request.reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_digamsa_yantra(coords)
         elif request.yantra_type == "dhruva_protha_chakra":
-            specs = engine.generate_dhruva_protha_chakra(coords)
+            try:
+                specs = engine.generate_dhruva_protha_chakra(coords, request.reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_dhruva_protha_chakra(coords)
         elif request.yantra_type == "kapala_yantra":
-            specs = engine.generate_kapala_yantra(coords)
+            try:
+                specs = engine.generate_kapala_yantra(coords, request.reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_kapala_yantra(coords)
         elif request.yantra_type == "chakra_yantra":
-            specs = engine.generate_chakra_yantra(coords)
+            try:
+                specs = engine.generate_chakra_yantra(coords, request.reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_chakra_yantra(coords)
         elif request.yantra_type == "unnatamsa_yantra":
-            specs = engine.generate_unnatamsa_yantra(coords)
+            try:
+                specs = engine.generate_unnatamsa_yantra(coords, request.reference_location)
+            except (TypeError, ValueError):
+                specs = engine.generate_unnatamsa_yantra(coords)
         else:
             raise HTTPException(
                 status_code=400, 
@@ -187,7 +221,13 @@ async def generate_yantra(request: YantraRequest):
             accuracy_metrics=specs.accuracy_metrics
         )
         
+    except ValueError as e:
+        print(f"ValueError: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        print(f"Unexpected error: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/solar/position")

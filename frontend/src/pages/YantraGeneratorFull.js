@@ -20,14 +20,11 @@ import {
   Tab,
   Accordion,
   AccordionSummary,
-  AccordionDetails,
-  IconButton,
-  Tooltip
+  AccordionDetails
 } from '@mui/material';
 import {
   ExpandMore,
   Download,
-  Share,
   ThreeDRotation,
   Architecture,
   Timeline,
@@ -42,7 +39,9 @@ const YantraGenerator = () => {
     longitude: '',
     elevation: '0'
   });
-  const [selectedYantra, setSelectedYantra] = useState('samrat_yantra');
+  const [selectedYantra, setSelectedYantra] = useState('');
+  const [selectedReference, setSelectedReference] = useState('jaipur');
+  const [availableReferences, setAvailableReferences] = useState({});
   const [yantraSpecs, setYantraSpecs] = useState(null);
   const [availableYantras, setAvailableYantras] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -57,6 +56,37 @@ const YantraGenerator = () => {
     fetchAvailableYantras();
   }, []);
 
+  // Fetch available references when yantra type changes
+  useEffect(() => {
+    if (selectedYantra) {
+      fetchAvailableReferences(selectedYantra);
+    }
+  }, [selectedYantra]);
+
+  const fetchAvailableReferences = async (yantraType) => {
+    try {
+      console.log('Fetching references for:', yantraType);
+      const response = await fetch(`http://localhost:8000/yantras/${yantraType}/references`);
+      const data = await response.json();
+      console.log('References response:', data);
+      setAvailableReferences(data.references || {});
+      // Set default reference to first available
+      const firstRef = Object.keys(data.references || {})[0];
+      if (firstRef) {
+        setSelectedReference(firstRef);
+      }
+    } catch (err) {
+      console.error('Error fetching references:', err);
+      // Set fallback references
+      setAvailableReferences({
+        jaipur: { name: 'Jaipur', latitude: 26.91, longitude: 75.79, elevation: 431 },
+        delhi: { name: 'Delhi', latitude: 28.61, longitude: 77.21, elevation: 216 },
+        ujjain: { name: 'Ujjain', latitude: 23.18, longitude: 75.79, elevation: 492 }
+      });
+      setSelectedReference('jaipur');
+    }
+  };
+
   const fetchAvailableYantras = async () => {
     try {
       const response = await fetch('http://localhost:8000/yantras/available');
@@ -67,7 +97,12 @@ const YantraGenerator = () => {
       setAvailableYantras([
         { id: 'samrat_yantra', name: 'Samrat Yantra (Great Sundial)', description: 'The largest and most accurate sundial for local solar time' },
         { id: 'rama_yantra', name: 'Rama Yantra (Cylindrical)', description: 'Cylindrical instrument for measuring altitude and azimuth' },
-        { id: 'jai_prakash_yantra', name: 'Jai Prakash Yantra', description: 'Hemispherical sundial for celestial coordinate measurement' }
+        { id: 'jai_prakash_yantra', name: 'Jai Prakash Yantra', description: 'Hemispherical sundial for celestial coordinate measurement' },
+        { id: 'digamsa_yantra', name: 'Digamsa Yantra', description: 'Azimuth-altitude measuring instrument' },
+        { id: 'dhruva_protha_chakra', name: 'Dhruva-Protha-Chakra', description: 'Pole circle for latitude determination' },
+        { id: 'kapala_yantra', name: 'Kapala Yantra', description: 'Bowl sundial for time measurement' },
+        { id: 'chakra_yantra', name: 'Chakra Yantra', description: 'Ring dial for solar observations' },
+        { id: 'unnatamsa_yantra', name: 'Unnatamsa Yantra', description: 'Solar altitude measuring instrument' }
       ]);
     }
   };
@@ -98,6 +133,7 @@ const YantraGenerator = () => {
             elevation: parseFloat(coordinates.elevation)
           },
           yantra_type: selectedYantra,
+          reference_location: selectedReference || 'jaipur',
           scale_factor: 1.0
         })
       });
@@ -201,6 +237,9 @@ const YantraGenerator = () => {
                   onChange={(e) => setSelectedYantra(e.target.value)}
                   label="Yantra Type"
                 >
+                  <MenuItem value="">
+                    <em>Select a Yantra Type</em>
+                  </MenuItem>
                   {availableYantras.map((yantra) => (
                     <MenuItem key={yantra.id} value={yantra.id}>
                       {yantra.name}
@@ -208,6 +247,31 @@ const YantraGenerator = () => {
                   ))}
                 </Select>
               </FormControl>
+
+              {/* Historical Reference Selection */}
+              {selectedYantra && (
+                <FormControl fullWidth sx={{ mb: 3 }}>
+                  <InputLabel>Historical Reference</InputLabel>
+                  <Select
+                    value={selectedReference}
+                    onChange={(e) => setSelectedReference(e.target.value)}
+                    label="Historical Reference"
+                  >
+                    {Object.entries(availableReferences).map(([key, ref]) => (
+                      <MenuItem key={key} value={key}>
+                        {ref.name} ({ref.latitude?.toFixed(1)}°N, {ref.longitude?.toFixed(1)}°E)
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+
+              {/* Debug Info */}
+              {selectedYantra && (
+                <Alert severity="info" sx={{ mb: 3, fontSize: '0.9rem' }}>
+                  <strong>Debug:</strong> Yantra: {selectedYantra} | References: {Object.keys(availableReferences).length} | Selected: {selectedReference}
+                </Alert>
+              )}
 
               {/* Location Presets */}
               <Box sx={{ mb: 3 }}>

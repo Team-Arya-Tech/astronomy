@@ -7,7 +7,7 @@ const initialState = {
     longitude: 77.2090,
     elevation: 216
   },
-  selectedYantraType: 'samrat_yantra',
+  selectedYantraType: '',  // Start with empty selection to avoid out-of-range error
   yantraSpecs: null,
   loading: false,
   error: null,
@@ -32,6 +32,36 @@ const initialState = {
       name: 'Jai Prakash Yantra (Hemispherical Sundial)',
       description: 'Hemispherical bowl representing celestial sphere',
       accuracy: '±1 minute time, ±0.5° coordinates'
+    },
+    {
+      id: 'digamsa_yantra',
+      name: 'Digamsa Yantra (Azimuth-Altitude Instrument)',
+      description: 'Vertical semicircle for measuring azimuthal directions',
+      accuracy: '±0.5° azimuth and altitude'
+    },
+    {
+      id: 'dhruva_protha_chakra',
+      name: 'Dhruva-Protha-Chakra (Pole Circle)',
+      description: 'Circular disk for determining celestial pole position',
+      accuracy: '±0.1° latitude, ±4 minutes time'
+    },
+    {
+      id: 'kapala_yantra',
+      name: 'Kapala Yantra (Bowl Sundial)',
+      description: 'Hemispherical bowl sundial for time and seasonal observations',
+      accuracy: '±3 minutes time, ±3 days seasonal'
+    },
+    {
+      id: 'chakra_yantra',
+      name: 'Chakra Yantra (Ring Dial)',
+      description: 'Nested circular rings for solar observations',
+      accuracy: '±0.2° angular measurements'
+    },
+    {
+      id: 'unnatamsa_yantra',
+      name: 'Unnatamsa Yantra (Solar Altitude Instrument)',
+      description: 'Quarter-circle arc for measuring solar altitude angles',
+      accuracy: '±0.25° altitude, ±5 minutes time'
     }
   ]
 };

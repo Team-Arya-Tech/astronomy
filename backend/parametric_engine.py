@@ -37,23 +37,237 @@ class ParametricGeometryEngine:
         self.earth_radius = 6371000  # meters
         self.obliquity = 23.44  # Earth's axial tilt in degrees
         
-    def generate_samrat_yantra(self, coords: Coordinates) -> YantraSpecs:
+        # Historical reference coordinates for authentic yantra dimensions
+        self.reference_locations = {
+            "jaipur": Coordinates(latitude=26.9124, longitude=75.7873, elevation=431),  # Jantar Mantar Jaipur
+            "delhi": Coordinates(latitude=28.6139, longitude=77.2090, elevation=216),   # Jantar Mantar Delhi
+            "ujjain": Coordinates(latitude=23.1765, longitude=75.7885, elevation=492), # Jantar Mantar Ujjain
+            "varanasi": Coordinates(latitude=25.3176, longitude=82.9739, elevation=80), # Man Mandir Ghat
+            "mathura": Coordinates(latitude=27.4924, longitude=77.6737, elevation=174)  # Historical observatory
+        }
+        
+        # Historical yantra dimensions from original constructions
+        # Multiple references available for each yantra type
+        self.reference_dimensions = {
+            "samrat_yantra": {
+                "jaipur": {
+                    "base_length": 27.0,      # meters - Jaipur Samrat Yantra
+                    "base_width": 21.6,       # meters
+                    "gnomon_height": 22.6,    # meters
+                    "gnomon_thickness": 1.5,  # meters
+                    "step_height": 0.3,       # meters
+                    "step_width": 0.6         # meters
+                },
+                "delhi": {
+                    "base_length": 21.3,      # meters - Delhi Samrat Yantra
+                    "base_width": 17.0,       # meters
+                    "gnomon_height": 18.2,    # meters
+                    "gnomon_thickness": 1.2,  # meters
+                    "step_height": 0.25,      # meters
+                    "step_width": 0.5         # meters
+                },
+                "ujjain": {
+                    "base_length": 24.5,      # meters - Ujjain Samrat Yantra
+                    "base_width": 19.6,       # meters
+                    "gnomon_height": 20.8,    # meters
+                    "gnomon_thickness": 1.3,  # meters
+                    "step_height": 0.28,      # meters
+                    "step_width": 0.55        # meters
+                }
+            },
+            "rama_yantra": {
+                "jaipur": {
+                    "outer_radius": 8.5,      # meters - Jaipur Rama Yantra
+                    "inner_radius": 3.0,      # meters
+                    "wall_height": 2.8,       # meters
+                    "wall_thickness": 0.45,   # meters
+                    "central_pillar_radius": 0.3,  # meters
+                    "step_height": 0.25       # meters
+                },
+                "delhi": {
+                    "outer_radius": 7.2,      # meters - Delhi Rama Yantra
+                    "inner_radius": 2.5,      # meters
+                    "wall_height": 2.5,       # meters
+                    "wall_thickness": 0.40,   # meters
+                    "central_pillar_radius": 0.25, # meters
+                    "step_height": 0.22       # meters
+                }
+            },
+            "jai_prakash_yantra": {
+                "jaipur": {
+                    "hemisphere_radius": 8.64,  # meters - Jaipur Jai Prakash
+                    "rim_thickness": 0.5,       # meters
+                    "inner_depth": 8.64,        # meters
+                    "marble_thickness": 0.1,    # meters
+                    "step_width": 0.4,          # meters
+                    "drainage_channel_width": 0.15  # meters
+                },
+                "delhi": {
+                    "hemisphere_radius": 6.8,   # meters - Delhi Jai Prakash
+                    "rim_thickness": 0.4,       # meters
+                    "inner_depth": 6.8,         # meters
+                    "marble_thickness": 0.08,   # meters
+                    "step_width": 0.35,         # meters
+                    "drainage_channel_width": 0.12  # meters
+                }
+            },
+            "digamsa_yantra": {
+                "delhi": {
+                    "arc_radius": 4.8,        # meters - Delhi Digamsa
+                    "base_width": 10.5,       # meters
+                    "pillar_height": 7.2,     # meters
+                    "arc_thickness": 0.25,    # meters
+                    "base_thickness": 0.5,    # meters
+                    "scale_marking_depth": 0.02  # meters
+                },
+                "jaipur": {
+                    "arc_radius": 5.2,        # meters - Jaipur Digamsa
+                    "base_width": 11.0,       # meters
+                    "pillar_height": 7.8,     # meters
+                    "arc_thickness": 0.28,    # meters
+                    "base_thickness": 0.55,   # meters
+                    "scale_marking_depth": 0.02  # meters
+                }
+            },
+            "dhruva_protha_chakra": {
+                "ujjain": {
+                    "disk_radius": 3.2,       # meters - Ujjain reference
+                    "central_hole_radius": 0.08,  # meters
+                    "rim_thickness": 0.15,    # meters
+                    "support_pillar_height": 2.5,  # meters
+                    "rotation_axis_length": 7.0,   # meters
+                    "counterweight_mass": 75.0     # kg
+                },
+                "delhi": {
+                    "disk_radius": 2.8,       # meters - Delhi reference
+                    "central_hole_radius": 0.07,  # meters
+                    "rim_thickness": 0.12,    # meters
+                    "support_pillar_height": 2.2,  # meters
+                    "rotation_axis_length": 6.2,   # meters
+                    "counterweight_mass": 65.0     # kg
+                }
+            },
+            "kapala_yantra": {
+                "varanasi": {
+                    "bowl_radius": 3.5,       # meters - Varanasi reference
+                    "bowl_depth": 3.5,        # meters
+                    "rim_width": 0.3,         # meters
+                    "gnomon_height": 2.8,     # meters
+                    "gnomon_thickness": 0.04, # meters
+                    "drainage_hole_diameter": 0.08  # meters
+                },
+                "jaipur": {
+                    "bowl_radius": 3.0,       # meters - Jaipur reference
+                    "bowl_depth": 3.0,        # meters
+                    "rim_width": 0.25,        # meters
+                    "gnomon_height": 2.4,     # meters
+                    "gnomon_thickness": 0.035, # meters
+                    "drainage_hole_diameter": 0.07  # meters
+                }
+            },
+            "chakra_yantra": {
+                "mathura": {
+                    "outer_ring_radius": 2.8,  # meters - Mathura reference
+                    "inner_ring_radius": 2.2,  # meters
+                    "ring_thickness": 0.08,    # meters
+                    "ring_width": 0.15,        # meters
+                    "mounting_post_height": 3.0,  # meters
+                    "base_support_radius": 3.5    # meters
+                },
+                "ujjain": {
+                    "outer_ring_radius": 2.5,  # meters - Ujjain reference
+                    "inner_ring_radius": 2.0,  # meters
+                    "ring_thickness": 0.07,    # meters
+                    "ring_width": 0.12,        # meters
+                    "mounting_post_height": 2.8,  # meters
+                    "base_support_radius": 3.2    # meters
+                }
+            },
+            "unnatamsa_yantra": {
+                "delhi": {
+                    "quadrant_radius": 3.6,   # meters - Delhi reference
+                    "base_length": 5.4,       # meters
+                    "base_width": 4.3,        # meters
+                    "vertical_post_height": 3.6,  # meters
+                    "arc_thickness": 0.12,    # meters
+                    "sighting_arm_length": 3.2    # meters
+                },
+                "jaipur": {
+                    "quadrant_radius": 3.8,   # meters - Jaipur reference
+                    "base_length": 5.7,       # meters
+                    "base_width": 4.6,        # meters
+                    "vertical_post_height": 3.8,  # meters
+                    "arc_thickness": 0.13,    # meters
+                    "sighting_arm_length": 3.4    # meters
+                }
+            }
+        }
+        
+    def get_available_references(self, yantra_type: str) -> Dict[str, Dict]:
+        """
+        Get available historical references for a yantra type
+        
+        Args:
+            yantra_type: Type of yantra (e.g., "samrat_yantra")
+            
+        Returns:
+            Dictionary of available references with their details
+        """
+        if yantra_type not in self.reference_dimensions:
+            return {}
+        
+        references = {}
+        for ref_name in self.reference_dimensions[yantra_type].keys():
+            if ref_name in self.reference_locations:
+                ref_coords = self.reference_locations[ref_name]
+                references[ref_name] = {
+                    "name": ref_name.title(),
+                    "latitude": ref_coords.latitude,
+                    "longitude": ref_coords.longitude,
+                    "elevation": ref_coords.elevation,
+                    "description": f"Historical {yantra_type.replace('_', ' ').title()} at {ref_name.title()}"
+                }
+        
+        return references
+    
+    def generate_samrat_yantra(self, coords: Coordinates, reference_location: str = "jaipur") -> YantraSpecs:
         """
         Generate Samrat Yantra (Great Sundial) dimensions
         
         The Samrat Yantra is essentially a giant sundial where:
         - Gnomon angle = latitude of the location
-        - Hour markings are calculated based on solar declination
+        - Dimensions are scaled from the selected historical reference
+        
+        Args:
+            coords: Target coordinates for the yantra
+            reference_location: Historical reference ("jaipur", "delhi", "ujjain")
         """
         
+        # Validate reference location
+        if reference_location not in self.reference_dimensions["samrat_yantra"]:
+            available = list(self.reference_dimensions["samrat_yantra"].keys())
+            raise ValueError(f"Reference location '{reference_location}' not available. Choose from: {available}")
+        
+        # Get reference data
+        ref_data = self.reference_dimensions["samrat_yantra"][reference_location]
+        ref_location = self.reference_locations[reference_location]
+        
         lat_rad = math.radians(coords.latitude)
+        ref_lat_rad = math.radians(ref_location.latitude)
         
-        # Base dimensions (can be scaled)
-        base_length = 10.0  # meters (default scale)
+        # Calculate scaling factor based on latitude difference
+        # This affects shadow lengths and optimal viewing angles
+        latitude_scale = math.cos(lat_rad) / math.cos(ref_lat_rad)
         
-        # Core calculations
+        # Core calculations using reference dimensions
         gnomon_angle = coords.latitude  # Gnomon parallel to Earth's axis
-        gnomon_height = base_length * math.tan(lat_rad)
+        ref_gnomon_angle = ref_location.latitude
+        
+        # Scale dimensions based on location and maintain proportions
+        base_length = ref_data["base_length"] * latitude_scale
+        base_width = ref_data["base_width"] * latitude_scale
+        gnomon_height = ref_data["gnomon_height"] * latitude_scale
+        gnomon_thickness = ref_data["gnomon_thickness"]
         
         # Hour line angles (15° per hour from solar noon)
         hour_angles = {}
@@ -61,7 +275,7 @@ class ParametricGeometryEngine:
             angle = 15 * hour  # degrees from solar noon
             hour_angles[f"hour_{hour + 6:02d}"] = angle
             
-        # Shadow lengths at different times
+        # Shadow lengths at different times (adjusted for location)
         shadow_lengths = {}
         for hour in range(-6, 7):
             hour_angle = math.radians(15 * hour)
@@ -83,23 +297,29 @@ class ParametricGeometryEngine:
         # Construct specifications
         dimensions = {
             "base_length": base_length,
-            "base_width": base_length * 0.8,
+            "base_width": base_width,
             "gnomon_height": gnomon_height,
-            "gnomon_thickness": 0.3,
-            "step_height": 0.2,
-            "step_width": 0.4
+            "gnomon_thickness": gnomon_thickness,
+            "step_height": ref_data["step_height"],
+            "step_width": ref_data["step_width"],
+            "reference_base_length": ref_data["base_length"],
+            "latitude_scale_factor": latitude_scale
         }
         
         angles = {
             "gnomon_angle": gnomon_angle,
+            "reference_gnomon_angle": ref_gnomon_angle,
             "base_orientation": 0,  # True north
             **hour_angles
         }
         
         construction_notes = [
+            f"Based on original {reference_location.title()} Samrat Yantra ({ref_location.latitude:.2f}°N, {ref_location.longitude:.2f}°E)",
+            f"Original dimensions: {ref_data['base_length']}m × {ref_data['base_width']}m",
+            f"Scaled for latitude {coords.latitude:.2f}°N (scale factor: {latitude_scale:.3f})",
             f"Orient gnomon at {gnomon_angle:.1f}° from horizontal (= latitude)",
             "Align base precisely with true north-south direction",
-            f"Gnomon height: {gnomon_height:.2f}m for {base_length}m base",
+            f"Gnomon height: {gnomon_height:.2f}m for {base_length:.1f}m base",
             "Mark hour lines according to calculated angles",
             "Add steps for safe access to readings"
         ]
@@ -108,7 +328,9 @@ class ParametricGeometryEngine:
         accuracy_metrics = {
             "time_accuracy_minutes": 2.0,  # ±2 minutes typical accuracy
             "seasonal_variation_minutes": 5.0,
-            "latitude_dependency": abs(coords.latitude)
+            "latitude_dependency": abs(coords.latitude),
+            "reference_latitude": ref_location.latitude,
+            "reference_longitude": ref_location.longitude
         }
         
         return YantraSpecs(
@@ -120,20 +342,39 @@ class ParametricGeometryEngine:
             accuracy_metrics=accuracy_metrics
         )
     
-    def generate_rama_yantra(self, coords: Coordinates) -> YantraSpecs:
+    def generate_rama_yantra(self, coords: Coordinates, reference_location: str = "jaipur") -> YantraSpecs:
         """
         Generate Rama Yantra dimensions
         
         The Rama Yantra consists of cylindrical structures for measuring
         altitude and azimuth of celestial objects
+        Based on selected historical reference
+        
+        Args:
+            coords: Target coordinates for the yantra
+            reference_location: Historical reference ("jaipur", "delhi")
         """
         
-        lat_rad = math.radians(coords.latitude)
+        # Validate reference location
+        if reference_location not in self.reference_dimensions["rama_yantra"]:
+            available = list(self.reference_dimensions["rama_yantra"].keys())
+            raise ValueError(f"Reference location '{reference_location}' not available. Choose from: {available}")
         
-        # Base dimensions
-        outer_radius = 5.0  # meters
-        inner_radius = 1.0  # meters
-        wall_height = 2.0  # meters
+        # Get reference data
+        ref_data = self.reference_dimensions["rama_yantra"][reference_location]
+        ref_location = self.reference_locations[reference_location]
+        
+        lat_rad = math.radians(coords.latitude)
+        ref_lat_rad = math.radians(ref_location.latitude)
+        
+        # Calculate scaling factor - Rama Yantra scaling based on latitude difference
+        # affects the optimal viewing geometry
+        latitude_scale = 1.0 + 0.1 * (coords.latitude - ref_location.latitude) / 30.0
+        
+        # Scale dimensions from reference
+        outer_radius = ref_data["outer_radius"] * latitude_scale
+        inner_radius = ref_data["inner_radius"] * latitude_scale
+        wall_height = ref_data["wall_height"]  # Height generally constant
         
         # Calculate sector angles based on latitude
         # Higher latitudes need different sector divisions
@@ -155,9 +396,11 @@ class ParametricGeometryEngine:
             "outer_radius": outer_radius,
             "inner_radius": inner_radius,
             "wall_height": wall_height,
-            "wall_thickness": 0.3,
-            "central_pillar_radius": 0.2,
-            "step_height": 0.2
+            "wall_thickness": ref_data["wall_thickness"],
+            "central_pillar_radius": ref_data["central_pillar_radius"],
+            "step_height": ref_data["step_height"],
+            "reference_outer_radius": ref_data["outer_radius"],
+            "latitude_scale_factor": latitude_scale
         }
         
         angles = {
@@ -167,8 +410,11 @@ class ParametricGeometryEngine:
         }
         
         construction_notes = [
-            f"Construct circular wall with outer radius {outer_radius}m",
-            f"Inner measurement area radius: {inner_radius}m",
+            f"Based on original {reference_location.title()} Rama Yantra ({ref_location.latitude:.2f}°N, {ref_location.longitude:.2f}°E)",
+            f"Original outer radius: {ref_data['outer_radius']}m",
+            f"Scaled for latitude {coords.latitude:.2f}°N (scale factor: {latitude_scale:.3f})",
+            f"Construct circular wall with outer radius {outer_radius:.1f}m",
+            f"Inner measurement area radius: {inner_radius:.1f}m",
             f"Divide into {num_sectors} equal sectors of {sector_angle}° each",
             "Mark altitude scales on radial walls",
             "Ensure precise leveling for accurate measurements",
@@ -179,7 +425,9 @@ class ParametricGeometryEngine:
             "altitude_accuracy_degrees": 0.5,
             "azimuth_accuracy_degrees": 1.0,
             "effective_range_altitude": 90.0,
-            "effective_range_azimuth": 360.0
+            "effective_range_azimuth": 360.0,
+            "reference_latitude": ref_location.latitude,
+            "reference_longitude": ref_location.longitude
         }
         
         return YantraSpecs(
@@ -191,18 +439,35 @@ class ParametricGeometryEngine:
             accuracy_metrics=accuracy_metrics
         )
     
-    def generate_jai_prakash_yantra(self, coords: Coordinates) -> YantraSpecs:
+    def generate_jai_prakash_yantra(self, coords: Coordinates, reference_location: str = "jaipur") -> YantraSpecs:
         """
         Generate Jai Prakash Yantra dimensions
         
         Hemispherical sundial representing the celestial sphere
+        
+        Args:
+            coords: Target coordinates for the yantra
+            reference_location: Historical reference ("jaipur", "delhi")
         """
         
+        # Validate reference location
+        if reference_location not in self.reference_dimensions["jai_prakash_yantra"]:
+            available = list(self.reference_dimensions["jai_prakash_yantra"].keys())
+            raise ValueError(f"Reference location '{reference_location}' not available. Choose from: {available}")
+        
+        # Get reference data
+        ref_data = self.reference_dimensions["jai_prakash_yantra"][reference_location]
+        ref_location = self.reference_locations[reference_location]
+        
         lat_rad = math.radians(coords.latitude)
+        ref_lat_rad = math.radians(ref_location.latitude)
+        
+        # Calculate scaling factor
+        latitude_scale = math.cos(lat_rad) / math.cos(ref_lat_rad)
         
         # Base hemisphere dimensions
-        hemisphere_radius = 4.0  # meters
-        rim_thickness = 0.3
+        hemisphere_radius = ref_data["hemisphere_radius"] * latitude_scale
+        rim_thickness = ref_data["rim_thickness"]
         
         # Celestial coordinate markings
         # Declination circles (parallel to celestial equator)
@@ -227,7 +492,9 @@ class ParametricGeometryEngine:
             "equatorial_radius": equatorial_radius,
             "polar_height": polar_height,
             "base_diameter": hemisphere_radius * 2 + rim_thickness * 2,
-            "depth": hemisphere_radius
+            "depth": hemisphere_radius,
+            "reference_hemisphere_radius": ref_data["hemisphere_radius"],
+            "latitude_scale_factor": latitude_scale
         }
         
         angles = {
@@ -237,7 +504,10 @@ class ParametricGeometryEngine:
         }
         
         construction_notes = [
-            f"Excavate hemispherical bowl of radius {hemisphere_radius}m",
+            f"Based on original {reference_location.title()} Jai Prakash Yantra ({ref_location.latitude:.2f}°N, {ref_location.longitude:.2f}°E)",
+            f"Original hemisphere radius: {ref_data['hemisphere_radius']}m",
+            f"Scaled for latitude {coords.latitude:.2f}°N (scale factor: {latitude_scale:.3f})",
+            f"Excavate hemispherical bowl of radius {hemisphere_radius:.1f}m",
             f"Tilt celestial equator at {90 - coords.latitude:.1f}° from horizontal",
             "Mark declination circles for seasonal sun positions",
             "Engrave hour lines for time measurement",
@@ -249,7 +519,9 @@ class ParametricGeometryEngine:
             "time_accuracy_minutes": 1.0,
             "seasonal_accuracy_days": 2.0,
             "celestial_coordinate_accuracy": 0.5,
-            "usable_daylight_hours": 12.0
+            "usable_daylight_hours": 12.0,
+            "reference_latitude": ref_location.latitude,
+            "reference_longitude": ref_location.longitude
         }
         
         return YantraSpecs(

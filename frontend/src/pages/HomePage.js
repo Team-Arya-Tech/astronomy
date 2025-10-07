@@ -75,10 +75,11 @@ const HomePage = () => {
           sx={{
             textAlign: 'center',
             py: { xs: 4, md: 8 },
-            background: 'rgba(255, 255, 255, 0.1)',
+            background: 'linear-gradient(145deg, rgba(45,24,16,0.8) 0%, rgba(31,22,17,0.9) 100%)',
             backdropFilter: 'blur(10px)',
             borderRadius: 4,
             mb: 6,
+            border: '1px solid rgba(212,175,55,0.2)',
             color: 'white'
           }}
         >
@@ -87,7 +88,7 @@ const HomePage = () => {
             sx={{
               fontSize: { xs: '2.5rem', md: '4rem' },
               fontWeight: 'bold',
-              background: 'linear-gradient(45deg, #fff 30%, #e3f2fd 90%)',
+              background: 'linear-gradient(45deg, #D4AF37 30%, #F4E4BC 90%)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -102,7 +103,8 @@ const HomePage = () => {
             sx={{
               fontSize: { xs: '1.2rem', md: '1.8rem' },
               mb: 3,
-              opacity: 0.9
+              opacity: 0.9,
+              color: '#F5E6D3'
             }}
           >
             Reviving Ancient Indian Astronomy through AI & Computational Geometry
@@ -115,7 +117,8 @@ const HomePage = () => {
               mb: 4,
               opacity: 0.8,
               maxWidth: '800px',
-              mx: 'auto'
+              mx: 'auto',
+              color: '#DEB887'
             }}
           >
             Generate geometric dimensions of astronomical instruments (yantras) for any location on Earth. 
@@ -132,9 +135,9 @@ const HomePage = () => {
                 py: 1.5,
                 fontSize: '1.1rem',
                 borderRadius: 3,
-                background: 'linear-gradient(45deg, #1976d2 30%, #42a5f5 90%)',
+                background: 'linear-gradient(45deg, #D4AF37 30%, #CD853F 90%)',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #1565c0 30%, #1976d2 90%)',
+                  background: 'linear-gradient(45deg, #B8860B 30%, #D4AF37 90%)',
                   transform: 'translateY(-2px)'
                 }
               }}
@@ -151,11 +154,11 @@ const HomePage = () => {
                 py: 1.5,
                 fontSize: '1.1rem',
                 borderRadius: 3,
-                borderColor: 'white',
-                color: 'white',
+                borderColor: '#F5E6D3',
+                color: '#F5E6D3',
                 '&:hover': {
-                  borderColor: 'white',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  borderColor: '#D4AF37',
+                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
                   transform: 'translateY(-2px)'
                 }
               }}
@@ -172,7 +175,7 @@ const HomePage = () => {
         align="center"
         sx={{
           mb: 6,
-          color: 'white',
+          color: '#F5E6D3',
           fontWeight: 'bold'
         }}
       >
@@ -191,10 +194,16 @@ const HomePage = () => {
                 className="yantra-card"
                 sx={{
                   height: '100%',
-                  background: 'rgba(255, 255, 255, 0.95)',
+                  background: 'linear-gradient(145deg, rgba(45,24,16,0.95) 0%, rgba(31,22,17,0.98) 100%)',
                   backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(212,175,55,0.2)',
                   cursor: 'pointer',
-                  transition: 'all 0.3s ease'
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    border: '1px solid rgba(212,175,55,0.3)',
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.5)'
+                  }
                 }}
                 onClick={feature.action}
               >
@@ -207,7 +216,7 @@ const HomePage = () => {
                     {feature.title}
                   </Typography>
                   
-                  <Typography variant="body1" sx={{ flexGrow: 1, color: 'text.secondary' }}>
+                  <Typography variant="body1" sx={{ flexGrow: 1, color: '#F5E6D3' }}>
                     {feature.description}
                   </Typography>
                   
@@ -233,11 +242,12 @@ const HomePage = () => {
       >
         <Box
           sx={{
-            background: 'rgba(255, 255, 255, 0.1)',
+            background: 'linear-gradient(145deg, rgba(45,24,16,0.8) 0%, rgba(31,22,17,0.9) 100%)',
             backdropFilter: 'blur(10px)',
             borderRadius: 4,
             p: 4,
             textAlign: 'center',
+            border: '1px solid rgba(212,175,55,0.2)',
             color: 'white'
           }}
         >
@@ -247,19 +257,19 @@ const HomePage = () => {
           
           <Grid container spacing={4}>
             <Grid item xs={12} sm={3}>
-              <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#42a5f5' }}>3+</Typography>
+              <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#D4AF37' }}>3+</Typography>
               <Typography variant="h6">Ancient Yantras</Typography>
             </Grid>
             <Grid item xs={12} sm={3}>
-              <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#42a5f5' }}>±2min</Typography>
+              <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#D4AF37' }}>±2min</Typography>
               <Typography variant="h6">Time Accuracy</Typography>
             </Grid>
             <Grid item xs={12} sm={3}>
-              <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#42a5f5' }}>360°</Typography>
+              <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#D4AF37' }}>360°</Typography>
               <Typography variant="h6">Global Coverage</Typography>
             </Grid>
             <Grid item xs={12} sm={3}>
-              <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#42a5f5' }}>1000+</Typography>
+              <Typography variant="h3" sx={{ fontWeight: 'bold', color: '#D4AF37' }}>1000+</Typography>
               <Typography variant="h6">Years of Wisdom</Typography>
             </Grid>
           </Grid>

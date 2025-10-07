@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Box, Container } from '@mui/material';
 import Navbar from './components/Navbar';
-import HomePage from './pages/HomePageSimple';
+import HomePage from './pages/HomePage';
 import YantraGenerator from './pages/YantraGeneratorFull';
 import AIManuscriptDecoder from './pages/AIManuscriptDecoder';
 import ARExperience from './pages/VRExperience';
@@ -15,7 +15,7 @@ function App() {
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      background: 'linear-gradient(135deg, #3e2723 0%, #5d4037 25%, #8d6e63 50%, #a1887f 75%, #d7ccc8 100%)'
     }}>
       <Navbar />
       

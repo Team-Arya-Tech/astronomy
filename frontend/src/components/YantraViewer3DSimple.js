@@ -16,7 +16,7 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null }) => {
 
     // Create scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
+    scene.background = new THREE.Color(0x241408); // Ancient brown to match theme
     sceneRef.current = scene;
 
     // Create camera
@@ -105,7 +105,9 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null }) => {
         width: '100%', 
         height: '400px',
         borderRadius: '8px',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        border: '2px solid rgba(212, 165, 116, 0.2)',
+        background: 'linear-gradient(to bottom, #241408 0%, #3e271a 100%)'
       }} 
     />
   );

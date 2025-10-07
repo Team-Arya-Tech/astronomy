@@ -93,8 +93,8 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
 
     // Create scene with enhanced atmosphere
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0f0f23); // Deep space blue
-    scene.fog = new THREE.Fog(0x0f0f23, 50, 100);
+    scene.background = new THREE.Color(0x241408); // Deep ancient brown
+    scene.fog = new THREE.Fog(0x3e271a, 50, 100);
     sceneRef.current = scene;
 
     // Create camera with better positioning
@@ -315,7 +315,8 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
           height: '100%',
           borderRadius: '8px',
           overflow: 'hidden',
-          background: 'linear-gradient(to bottom, #0f0f23 0%, #1a1a2e 100%)'
+          background: 'linear-gradient(to bottom, #241408 0%, #3e271a 50%, #5c3f2a 100%)',
+          border: '2px solid rgba(212, 165, 116, 0.2)'
         }} 
       />
       
@@ -328,10 +329,12 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
               top: 16, 
               left: 16, 
               right: 16,
-              background: 'rgba(0,0,0,0.7)',
+              background: 'linear-gradient(135deg, rgba(36, 20, 12, 0.9) 0%, rgba(62, 39, 26, 0.9) 100%)',
+              border: '1px solid rgba(212, 165, 116, 0.3)',
               borderRadius: 2,
               p: 2,
-              color: 'white'
+              color: '#f5f5dc',
+              backdropFilter: 'blur(8px)'
             }}
           >
             <Typography variant="body2" gutterBottom>
@@ -348,7 +351,24 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
                 { value: 12, label: '12 PM' },
                 { value: 18, label: '6 PM' }
               ]}
-              sx={{ color: '#42a5f5' }}
+              sx={{ 
+                color: '#d4a574',
+                '& .MuiSlider-thumb': {
+                  backgroundColor: '#b87333',
+                },
+                '& .MuiSlider-track': {
+                  backgroundColor: '#d4a574',
+                },
+                '& .MuiSlider-rail': {
+                  backgroundColor: '#8b7355',
+                },
+                '& .MuiSlider-mark': {
+                  backgroundColor: '#daa520',
+                },
+                '& .MuiSlider-markLabel': {
+                  color: '#f5f5dc',
+                }
+              }}
             />
           </Box>
 
@@ -360,31 +380,57 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
               left: 16,
               display: 'flex',
               gap: 1,
-              background: 'rgba(0,0,0,0.7)',
+              background: 'linear-gradient(135deg, rgba(36, 20, 12, 0.9) 0%, rgba(62, 39, 26, 0.9) 100%)',
+              border: '1px solid rgba(212, 165, 116, 0.3)',
               borderRadius: 2,
-              p: 1
+              p: 1,
+              backdropFilter: 'blur(8px)'
             }}
           >
             <Tooltip title={isPlaying ? "Pause Animation" : "Play Animation"}>
-              <IconButton onClick={togglePlayPause} sx={{ color: 'white' }}>
+              <IconButton onClick={togglePlayPause} sx={{ 
+                color: '#d4a574',
+                '&:hover': {
+                  backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                  color: '#daa520'
+                }
+              }}>
                 {isPlaying ? <Pause /> : <PlayArrow />}
               </IconButton>
             </Tooltip>
             
             <Tooltip title="Reset Camera">
-              <IconButton onClick={resetCamera} sx={{ color: 'white' }}>
+              <IconButton onClick={resetCamera} sx={{ 
+                color: '#d4a574',
+                '&:hover': {
+                  backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                  color: '#daa520'
+                }
+              }}>
                 <RotateLeft />
               </IconButton>
             </Tooltip>
             
             <Tooltip title="Zoom In">
-              <IconButton onClick={handleZoomIn} sx={{ color: 'white' }}>
+              <IconButton onClick={handleZoomIn} sx={{ 
+                color: '#d4a574',
+                '&:hover': {
+                  backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                  color: '#daa520'
+                }
+              }}>
                 <ZoomIn />
               </IconButton>
             </Tooltip>
             
             <Tooltip title="Zoom Out">
-              <IconButton onClick={handleZoomOut} sx={{ color: 'white' }}>
+              <IconButton onClick={handleZoomOut} sx={{ 
+                color: '#d4a574',
+                '&:hover': {
+                  backgroundColor: 'rgba(212, 165, 116, 0.1)',
+                  color: '#daa520'
+                }
+              }}>
                 <ZoomOut />
               </IconButton>
             </Tooltip>
@@ -396,11 +442,13 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
               position: 'absolute', 
               top: 16, 
               right: 16,
-              background: 'rgba(0,0,0,0.7)',
+              background: 'linear-gradient(135deg, rgba(36, 20, 12, 0.9) 0%, rgba(62, 39, 26, 0.9) 100%)',
+              border: '1px solid rgba(212, 165, 116, 0.3)',
               borderRadius: 2,
               p: 2,
-              color: 'white',
-              minWidth: '200px'
+              color: '#f5f5dc',
+              minWidth: '200px',
+              backdropFilter: 'blur(8px)'
             }}
           >
             <Typography variant="h6" gutterBottom>

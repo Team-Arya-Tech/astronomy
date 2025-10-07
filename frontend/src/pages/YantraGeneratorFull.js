@@ -175,11 +175,11 @@ const YantraGenerator = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Typography variant="h3" align="center" gutterBottom sx={{ color: 'white', fontWeight: 'bold' }}>
+      <Typography variant="h3" align="center" gutterBottom sx={{ color: '#f5f5dc', fontWeight: 'bold', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
         Yantra Generator
       </Typography>
       
-      <Typography variant="h6" align="center" sx={{ color: 'white', opacity: 0.8, mb: 4 }}>
+      <Typography variant="h6" align="center" sx={{ color: '#d7ccc8', opacity: 0.9, mb: 4, textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
         Generate precise astronomical instrument dimensions for any location on Earth
       </Typography>
 

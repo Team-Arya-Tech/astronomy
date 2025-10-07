@@ -50,7 +50,8 @@ const Navbar = () => {
     { label: 'Generator', path: '/generator' },
     { label: 'AI Decoder', path: '/ai' },
     { label: 'VR Experience', path: '/ar' },
-    { label: 'Documentation', path: '/docs' }
+    { label: 'Documentation', path: '/docs' },
+    { label: 'About', path: '/about' }
   ];
 
   return (
@@ -165,7 +166,7 @@ const Navbar = () => {
             >
               <MenuItem onClick={handleClose}>Profile</MenuItem>
               <MenuItem onClick={handleClose}>Settings</MenuItem>
-              <MenuItem onClick={handleClose}>About</MenuItem>
+              <MenuItem onClick={() => { handleClose(); navigate('/about'); }}>About</MenuItem>
             </Menu>
           </>
         )}

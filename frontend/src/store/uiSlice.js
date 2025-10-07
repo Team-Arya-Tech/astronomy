@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   sidebarOpen: false,
   currentView: 'generator', // 'generator', '3d', 'ar', 'blueprint'
-  theme: 'light',
+  theme: 'dark', // Default to dark theme for ancient astronomy feel
   notifications: [],
   isARSupported: false,
   is3DViewActive: false,

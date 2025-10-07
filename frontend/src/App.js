@@ -14,8 +14,7 @@ function App() {
     <Box sx={{ 
       minHeight: '100vh',
       display: 'flex',
-      flexDirection: 'column',
-      background: 'linear-gradient(135deg, #3e2723 0%, #5d4037 25%, #8d6e63 50%, #a1887f 75%, #d7ccc8 100%)'
+      flexDirection: 'column'
     }}>
       <Navbar />
       

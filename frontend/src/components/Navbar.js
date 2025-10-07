@@ -57,8 +57,10 @@ const Navbar = () => {
     <AppBar 
       position="sticky" 
       sx={{ 
-        background: 'linear-gradient(45deg, #3e2723 30%, #5d4037 90%)',
-        boxShadow: '0 4px 8px rgba(62, 39, 35, 0.3)'
+        // Remove hardcoded background - let theme handle it
+        boxShadow: theme.palette.mode === 'dark' 
+          ? '0 4px 8px rgba(0, 0, 0, 0.3)' 
+          : '0 4px 8px rgba(139, 69, 19, 0.2)'
       }}
     >
       <Toolbar>
@@ -70,7 +72,9 @@ const Navbar = () => {
             component="div" 
             sx={{ 
               fontWeight: 'bold',
-              background: 'linear-gradient(45deg, #d4a574 30%, #daa520 90%)',
+              background: theme.palette.mode === 'dark' 
+                ? 'linear-gradient(45deg, #D4AF37 30%, #F4E4BC 90%)'
+                : 'linear-gradient(45deg, #8B4513 30%, #CD853F 90%)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -107,9 +111,9 @@ const Navbar = () => {
                   textTransform: 'none',
                   fontWeight: location.pathname === item.path ? 'bold' : 'normal',
                   backgroundColor: location.pathname === item.path ? 
-                    'rgba(255,255,255,0.1)' : 'transparent',
+                    (theme.palette.mode === 'dark' ? 'rgba(212,175,55,0.1)' : 'rgba(139,69,19,0.1)') : 'transparent',
                   '&:hover': {
-                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(212,175,55,0.1)' : 'rgba(139,69,19,0.1)',
                   }
                 }}
               >

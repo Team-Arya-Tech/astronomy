@@ -68,7 +68,12 @@ async def root():
         "available_yantras": [
             "samrat_yantra",
             "rama_yantra", 
-            "jai_prakash_yantra"
+            "jai_prakash_yantra",
+            "digamsa_yantra",
+            "dhruva_protha_chakra",
+            "kapala_yantra",
+            "chakra_yantra",
+            "unnatamsa_yantra"
         ]
     }
 
@@ -94,6 +99,36 @@ async def get_available_yantras():
                 "name": "Jai Prakash Yantra (Hemispherical Sundial)", 
                 "description": "Hemispherical bowl representing celestial sphere",
                 "accuracy": "±1 minute time, ±0.5° coordinates"
+            },
+            {
+                "id": "digamsa_yantra",
+                "name": "Digamsa Yantra (Azimuth-Altitude Instrument)",
+                "description": "Vertical semicircle for measuring azimuthal directions and horizon angles",
+                "accuracy": "±0.5° azimuth and altitude"
+            },
+            {
+                "id": "dhruva_protha_chakra",
+                "name": "Dhruva-Protha-Chakra (Pole Circle)",
+                "description": "Circular disk for determining celestial pole position and latitude",
+                "accuracy": "±0.1° latitude, ±4 minutes time"
+            },
+            {
+                "id": "kapala_yantra",
+                "name": "Kapala Yantra (Bowl Sundial)",
+                "description": "Hemispherical bowl sundial for time and seasonal observations",
+                "accuracy": "±3 minutes time, ±3 days seasonal"
+            },
+            {
+                "id": "chakra_yantra",
+                "name": "Chakra Yantra (Ring Dial)",
+                "description": "Nested circular rings for solar observations and tracking",
+                "accuracy": "±0.2° angular measurements"
+            },
+            {
+                "id": "unnatamsa_yantra",
+                "name": "Unnatamsa Yantra (Solar Altitude Instrument)",
+                "description": "Quarter-circle arc for measuring solar altitude angles",
+                "accuracy": "±0.25° altitude, ±5 minutes time"
             }
         ]
     }
@@ -117,6 +152,16 @@ async def generate_yantra(request: YantraRequest):
             specs = engine.generate_rama_yantra(coords)
         elif request.yantra_type == "jai_prakash_yantra":
             specs = engine.generate_jai_prakash_yantra(coords)
+        elif request.yantra_type == "digamsa_yantra":
+            specs = engine.generate_digamsa_yantra(coords)
+        elif request.yantra_type == "dhruva_protha_chakra":
+            specs = engine.generate_dhruva_protha_chakra(coords)
+        elif request.yantra_type == "kapala_yantra":
+            specs = engine.generate_kapala_yantra(coords)
+        elif request.yantra_type == "chakra_yantra":
+            specs = engine.generate_chakra_yantra(coords)
+        elif request.yantra_type == "unnatamsa_yantra":
+            specs = engine.generate_unnatamsa_yantra(coords)
         else:
             raise HTTPException(
                 status_code=400, 
@@ -199,6 +244,16 @@ async def export_yantra_blueprint(
             specs = engine.generate_rama_yantra(coords)
         elif yantra_type == "jai_prakash_yantra":
             specs = engine.generate_jai_prakash_yantra(coords)
+        elif yantra_type == "digamsa_yantra":
+            specs = engine.generate_digamsa_yantra(coords)
+        elif yantra_type == "dhruva_protha_chakra":
+            specs = engine.generate_dhruva_protha_chakra(coords)
+        elif yantra_type == "kapala_yantra":
+            specs = engine.generate_kapala_yantra(coords)
+        elif yantra_type == "chakra_yantra":
+            specs = engine.generate_chakra_yantra(coords)
+        elif yantra_type == "unnatamsa_yantra":
+            specs = engine.generate_unnatamsa_yantra(coords)
         else:
             raise HTTPException(
                 status_code=400,
@@ -244,7 +299,12 @@ async def validate_coordinates(latitude: float, longitude: float):
         "yantra_suitability": {
             "samrat_yantra": "Excellent" if abs(latitude) > 10 else "Good",
             "rama_yantra": "Excellent",
-            "jai_prakash_yantra": "Excellent" if abs(latitude) < 60 else "Good"
+            "jai_prakash_yantra": "Excellent" if abs(latitude) < 60 else "Good",
+            "digamsa_yantra": "Excellent",
+            "dhruva_protha_chakra": "Excellent" if abs(latitude) > 5 else "Good",
+            "kapala_yantra": "Excellent" if abs(latitude) < 65 else "Good",
+            "chakra_yantra": "Excellent",
+            "unnatamsa_yantra": "Excellent" if abs(latitude) > 5 else "Good"
         }
     }
 

@@ -562,6 +562,225 @@ class YantraBlueprintGenerator:
         doc.saveas(output_path)
         return output_path
     
+    def create_digamsa_yantra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
+        """Create detailed blueprint for Digamsa Yantra"""
+        
+        dimensions = specs['dimensions']
+        angles = specs['angles']
+        
+        pages = []
+        
+        # Plan view - semicircular arc from above
+        plan_elements = []
+        
+        # Base platform
+        base_rect = Rectangle(
+            (-dimensions['base_width']/2, -dimensions['base_length']/2),
+            dimensions['base_width'],
+            dimensions['base_length'],
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='lightgray',
+            alpha=0.3
+        )
+        plan_elements.append(base_rect)
+        
+        # Central pillar (top view)
+        pillar_circle = Circle(
+            (0, 0),
+            0.2,  # Pillar radius
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='gray',
+            alpha=0.5
+        )
+        plan_elements.append(pillar_circle)
+        
+        pages.append(BlueprintPage(
+            title="DIGAMSA YANTRA - PLAN VIEW",
+            scale="1:50",
+            elements=plan_elements,
+            dimensions=[],
+            notes=[
+                f"Arc radius: {dimensions['arc_radius']:.2f}m",
+                f"Base platform: {dimensions['base_width']:.2f}m x {dimensions['base_length']:.2f}m",
+                "Azimuth markings every 10° around base",
+                "Central pillar for arc mounting"
+            ]
+        ))
+        
+        return pages
+    
+    def create_dhruva_protha_chakra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
+        """Create detailed blueprint for Dhruva-Protha-Chakra"""
+        
+        dimensions = specs['dimensions']
+        
+        pages = []
+        
+        # Plan view - circular disk
+        plan_elements = []
+        
+        # Outer disk
+        outer_disk = Circle(
+            (0, 0),
+            dimensions['disk_radius'],
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='lightblue',
+            alpha=0.3
+        )
+        plan_elements.append(outer_disk)
+        
+        # Central hole for pole star sighting
+        central_hole = Circle(
+            (0, 0),
+            dimensions['central_hole_radius'],
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='white'
+        )
+        plan_elements.append(central_hole)
+        
+        pages.append(BlueprintPage(
+            title="DHRUVA-PROTHA-CHAKRA - PLAN VIEW",
+            scale="1:50",
+            elements=plan_elements,
+            dimensions=[],
+            notes=[
+                f"Disk radius: {dimensions['disk_radius']:.2f}m",
+                f"Central hole: {dimensions['central_hole_radius']*1000:.0f}mm diameter",
+                "24 hour divisions around circumference"
+            ]
+        ))
+        
+        return pages
+    
+    def create_kapala_yantra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
+        """Create detailed blueprint for Kapala Yantra"""
+        
+        dimensions = specs['dimensions']
+        
+        pages = []
+        
+        # Plan view - bowl from above
+        plan_elements = []
+        
+        # Outer rim
+        outer_rim = Circle(
+            (0, 0),
+            dimensions['bowl_radius'] + dimensions['rim_width'],
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='none'
+        )
+        plan_elements.append(outer_rim)
+        
+        # Bowl opening
+        bowl_opening = Circle(
+            (0, 0),
+            dimensions['bowl_radius'],
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='lightcyan',
+            alpha=0.3
+        )
+        plan_elements.append(bowl_opening)
+        
+        pages.append(BlueprintPage(
+            title="KAPALA YANTRA - PLAN VIEW",
+            scale="1:50",
+            elements=plan_elements,
+            dimensions=[],
+            notes=[
+                f"Bowl radius: {dimensions['bowl_radius']:.2f}m",
+                f"Bowl depth: {dimensions['bowl_depth']:.2f}m",
+                f"Rim width: {dimensions['rim_width']:.2f}m"
+            ]
+        ))
+        
+        return pages
+    
+    def create_chakra_yantra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
+        """Create detailed blueprint for Chakra Yantra"""
+        
+        dimensions = specs['dimensions']
+        
+        pages = []
+        
+        # Plan view - nested rings
+        plan_elements = []
+        
+        # Outer ring
+        outer_ring = Circle(
+            (0, 0),
+            dimensions['outer_ring_radius'],
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='none'
+        )
+        plan_elements.append(outer_ring)
+        
+        # Inner ring
+        inner_ring = Circle(
+            (0, 0),
+            dimensions['inner_ring_radius'],
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='none'
+        )
+        plan_elements.append(inner_ring)
+        
+        pages.append(BlueprintPage(
+            title="CHAKRA YANTRA - PLAN VIEW",
+            scale="1:50",
+            elements=plan_elements,
+            dimensions=[],
+            notes=[
+                f"Outer ring radius: {dimensions['outer_ring_radius']:.2f}m",
+                f"Inner ring radius: {dimensions['inner_ring_radius']:.2f}m",
+                "Degree markings every 5°"
+            ]
+        ))
+        
+        return pages
+    
+    def create_unnatamsa_yantra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
+        """Create detailed blueprint for Unnatamsa Yantra"""
+        
+        dimensions = specs['dimensions']
+        
+        pages = []
+        
+        # Plan view - quadrant from above
+        plan_elements = []
+        
+        # Base platform
+        base_rect = Rectangle(
+            (0, 0),
+            dimensions['base_length'],
+            dimensions['base_width'],
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='lightgray',
+            alpha=0.3
+        )
+        plan_elements.append(base_rect)
+        
+        pages.append(BlueprintPage(
+            title="UNNATAMSA YANTRA - PLAN VIEW",
+            scale="1:50",
+            elements=plan_elements,
+            dimensions=[],
+            notes=[
+                f"Quadrant radius: {dimensions['quadrant_radius']:.2f}m",
+                f"Base: {dimensions['base_length']:.2f}m x {dimensions['base_width']:.2f}m",
+                "Altitude scale marked every 5°"
+            ]
+        ))
+        
+        return pages
+    
     def export_blueprint(self, yantra_specs: Dict, format: str = 'pdf', 
                         output_dir: str = '.') -> str:
         """Main export function for blueprints"""
@@ -575,6 +794,16 @@ class YantraBlueprintGenerator:
             pages = self.create_rama_yantra_blueprint(yantra_specs)
         elif 'jai_prakash' in yantra_name:
             pages = self.create_jai_prakash_blueprint(yantra_specs)
+        elif 'digamsa' in yantra_name:
+            pages = self.create_digamsa_yantra_blueprint(yantra_specs)
+        elif 'dhruva' in yantra_name or 'pole_circle' in yantra_name:
+            pages = self.create_dhruva_protha_chakra_blueprint(yantra_specs)
+        elif 'kapala' in yantra_name or 'bowl_sundial' in yantra_name:
+            pages = self.create_kapala_yantra_blueprint(yantra_specs)
+        elif 'chakra' in yantra_name and 'ring' in yantra_name:
+            pages = self.create_chakra_yantra_blueprint(yantra_specs)
+        elif 'unnatamsa' in yantra_name:
+            pages = self.create_unnatamsa_yantra_blueprint(yantra_specs)
         else:
             raise ValueError(f"Unknown yantra type: {yantra_name}")
         

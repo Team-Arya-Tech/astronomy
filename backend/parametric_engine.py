@@ -261,6 +261,402 @@ class ParametricGeometryEngine:
             accuracy_metrics=accuracy_metrics
         )
     
+    def generate_digamsa_yantra(self, coords: Coordinates) -> YantraSpecs:
+        """
+        Generate Digamsa Yantra dimensions
+        
+        The Digamsa Yantra is used for measuring azimuthal directions
+        and horizon angles. It consists of a vertical semicircle with
+        graduated scales for angular measurements.
+        """
+        
+        lat_rad = math.radians(coords.latitude)
+        
+        # Base dimensions
+        arc_radius = 3.0  # meters
+        base_width = arc_radius * 2.2
+        pillar_height = arc_radius * 1.5
+        
+        # Azimuth scale markings (0° to 360°)
+        azimuth_markings = {}
+        for angle in range(0, 361, 10):  # Every 10 degrees
+            azimuth_markings[f"azimuth_{angle}"] = angle
+        
+        # Altitude scale markings on the arc (0° to 90°)
+        altitude_markings = {}
+        for angle in range(0, 91, 5):  # Every 5 degrees
+            arc_position = angle  # Direct mapping for semicircle
+            altitude_markings[f"altitude_{angle}"] = arc_position
+        
+        # Cardinal direction markers
+        cardinal_directions = {
+            "north": 0,
+            "east": 90,
+            "south": 180,
+            "west": 270
+        }
+        
+        dimensions = {
+            "arc_radius": arc_radius,
+            "base_width": base_width,
+            "base_length": base_width,
+            "pillar_height": pillar_height,
+            "arc_thickness": 0.15,
+            "base_thickness": 0.3,
+            "sighting_rod_length": 0.5,
+            "scale_marking_depth": 0.01
+        }
+        
+        angles = {
+            "arc_span": 180,  # Semicircle
+            "latitude_adjustment": coords.latitude,
+            **azimuth_markings,
+            **cardinal_directions
+        }
+        
+        construction_notes = [
+            f"Construct vertical semicircular arc of radius {arc_radius}m",
+            "Mount on stable base aligned with cardinal directions",
+            f"Pillar height: {pillar_height}m for comfortable observation",
+            "Engrave azimuth markings every 10° around the base",
+            "Mark altitude scale every 5° on the arc",
+            "Install movable sighting rod for angular measurements",
+            "Ensure perfect vertical alignment of the semicircle",
+            "Base must be precisely leveled and oriented to true north"
+        ]
+        
+        accuracy_metrics = {
+            "azimuth_accuracy_degrees": 0.5,
+            "altitude_accuracy_degrees": 0.5,
+            "measurement_range_azimuth": 360.0,
+            "measurement_range_altitude": 90.0,
+            "precision_arcminutes": 30
+        }
+        
+        return YantraSpecs(
+            name="Digamsa Yantra (Azimuth-Altitude Instrument)",
+            coordinates=coords,
+            dimensions=dimensions,
+            angles=angles,
+            construction_notes=construction_notes,
+            accuracy_metrics=accuracy_metrics
+        )
+    
+    def generate_dhruva_protha_chakra(self, coords: Coordinates) -> YantraSpecs:
+        """
+        Generate Dhruva-Protha-Chakra (Pole Circle) dimensions
+        
+        The Dhruva-Protha-Chakra is used for determining the position
+        of the celestial pole and measuring latitude. It consists of
+        a circular disk that can be rotated and tilted.
+        """
+        
+        lat_rad = math.radians(coords.latitude)
+        
+        # Base dimensions
+        disk_radius = 2.5  # meters
+        central_hole_radius = 0.05  # For pole star sighting
+        rim_thickness = 0.1
+        
+        # Pole star elevation equals latitude
+        pole_elevation = coords.latitude
+        
+        # Hour markings around the circumference
+        hour_markings = {}
+        for hour in range(24):
+            angle = hour * 15  # 15° per hour
+            hour_markings[f"hour_{hour:02d}"] = angle
+        
+        # Declination circles for different celestial objects
+        declination_circles = {}
+        for decl in range(-30, 31, 10):  # -30° to +30° declination
+            circle_radius = disk_radius * math.cos(math.radians(decl))
+            declination_circles[f"declination_{decl}"] = circle_radius
+        
+        # Latitude-specific adjustments
+        tilt_angle = 90 - coords.latitude  # Complement of latitude
+        
+        dimensions = {
+            "disk_radius": disk_radius,
+            "central_hole_radius": central_hole_radius,
+            "rim_thickness": rim_thickness,
+            "base_diameter": disk_radius * 2.5,
+            "support_pillar_height": 2.0,
+            "rotation_axis_length": disk_radius * 2.2,
+            "counterweight_mass": 50.0  # kg for balance
+        }
+        
+        angles = {
+            "pole_elevation": pole_elevation,
+            "disk_tilt_angle": tilt_angle,
+            "latitude_setting": coords.latitude,
+            **hour_markings
+        }
+        
+        construction_notes = [
+            f"Construct circular disk of radius {disk_radius}m",
+            f"Tilt disk at {tilt_angle:.1f}° from horizontal (90° - latitude)",
+            f"Central hole of {central_hole_radius*1000}mm for pole star sighting",
+            "Mark 24 hour divisions around the circumference",
+            "Install rotation mechanism for tracking celestial motion",
+            "Balance with counterweight for smooth rotation",
+            "Align rotation axis parallel to Earth's axis",
+            f"Pole star visible through center at {pole_elevation:.1f}° elevation"
+        ]
+        
+        accuracy_metrics = {
+            "latitude_measurement_accuracy": 0.1,  # degrees
+            "pole_star_tracking_accuracy": 0.2,
+            "time_measurement_accuracy": 4.0,  # minutes
+            "declination_measurement_range": 60.0  # degrees
+        }
+        
+        return YantraSpecs(
+            name="Dhruva-Protha-Chakra (Pole Circle)",
+            coordinates=coords,
+            dimensions=dimensions,
+            angles=angles,
+            construction_notes=construction_notes,
+            accuracy_metrics=accuracy_metrics
+        )
+    
+    def generate_kapala_yantra(self, coords: Coordinates) -> YantraSpecs:
+        """
+        Generate Kapala Yantra (Bowl Sundial) dimensions
+        
+        The Kapala Yantra is a hemispherical bowl sundial similar to
+        Jai Prakash but with different markings for specific observations.
+        """
+        
+        lat_rad = math.radians(coords.latitude)
+        
+        # Base dimensions
+        bowl_radius = 2.0  # meters
+        rim_width = 0.2
+        
+        # Time markings around the rim
+        time_markings = {}
+        for hour in range(6, 19):  # 6 AM to 6 PM
+            angle = (hour - 12) * 15  # Degrees from solar noon
+            time_markings[f"time_{hour:02d}h"] = angle
+        
+        # Seasonal curves inside the bowl
+        seasonal_curves = {}
+        for month in range(1, 13):
+            # Simplified seasonal declination
+            declination = 23.44 * math.sin(math.radians(30 * (month - 3)))
+            curve_radius = bowl_radius * math.cos(math.radians(declination))
+            seasonal_curves[f"month_{month:02d}"] = curve_radius
+        
+        # Gnomon position calculation
+        gnomon_height = bowl_radius * 0.8
+        
+        dimensions = {
+            "bowl_radius": bowl_radius,
+            "bowl_depth": bowl_radius,
+            "rim_width": rim_width,
+            "gnomon_height": gnomon_height,
+            "gnomon_thickness": 0.02,
+            "base_platform_radius": bowl_radius + rim_width + 0.5,
+            "drainage_hole_diameter": 0.05
+        }
+        
+        angles = {
+            "bowl_tilt": coords.latitude,  # Tilt equals latitude
+            "gnomon_angle": coords.latitude,
+            **time_markings
+        }
+        
+        construction_notes = [
+            f"Excavate hemispherical bowl of radius {bowl_radius}m",
+            f"Tilt bowl axis at {coords.latitude:.1f}° from horizontal",
+            "Install central gnomon parallel to Earth's axis",
+            "Mark hour lines on the rim for time reading",
+            "Engrave seasonal curves for different months",
+            "Provide drainage hole at the bottom",
+            "Smooth interior surface for accurate shadow casting",
+            "Align bowl opening to face the celestial equator"
+        ]
+        
+        accuracy_metrics = {
+            "time_accuracy_minutes": 3.0,
+            "seasonal_accuracy_days": 3.0,
+            "angular_measurement_accuracy": 1.0,
+            "usable_daylight_range": 12.0  # hours
+        }
+        
+        return YantraSpecs(
+            name="Kapala Yantra (Bowl Sundial)",
+            coordinates=coords,
+            dimensions=dimensions,
+            angles=angles,
+            construction_notes=construction_notes,
+            accuracy_metrics=accuracy_metrics
+        )
+    
+    def generate_chakra_yantra(self, coords: Coordinates) -> YantraSpecs:
+        """
+        Generate Chakra Yantra (Ring Dial) dimensions
+        
+        The Chakra Yantra consists of circular rings for solar
+        observations and astronomical measurements.
+        """
+        
+        lat_rad = math.radians(coords.latitude)
+        
+        # Base dimensions
+        outer_ring_radius = 1.5  # meters
+        inner_ring_radius = 1.2
+        ring_thickness = 0.05
+        
+        # Multiple rings for different functions
+        rings = {
+            "equatorial_ring": outer_ring_radius,
+            "meridian_ring": outer_ring_radius * 0.9,
+            "horizon_ring": outer_ring_radius * 0.8
+        }
+        
+        # Degree markings on rings
+        degree_markings = {}
+        for degree in range(0, 361, 5):  # Every 5 degrees
+            degree_markings[f"degree_{degree:03d}"] = degree
+        
+        # Seasonal adjustment angles
+        seasonal_angles = {}
+        for season in ['spring', 'summer', 'autumn', 'winter']:
+            if season == 'spring':
+                angle = 0
+            elif season == 'summer':
+                angle = 23.44
+            elif season == 'autumn':
+                angle = 0
+            else:  # winter
+                angle = -23.44
+            seasonal_angles[f"{season}_declination"] = angle
+        
+        dimensions = {
+            "outer_ring_radius": outer_ring_radius,
+            "inner_ring_radius": inner_ring_radius,
+            "ring_thickness": ring_thickness,
+            "ring_width": 0.1,
+            "central_axis_length": outer_ring_radius * 2.2,
+            "base_support_radius": outer_ring_radius + 0.3,
+            "mounting_post_height": 1.8
+        }
+        
+        angles = {
+            "equatorial_ring_tilt": coords.latitude,
+            "meridian_ring_tilt": 0,  # Vertical
+            "horizon_ring_tilt": 90,  # Horizontal
+            **degree_markings,
+            **seasonal_angles
+        }
+        
+        construction_notes = [
+            f"Construct nested rings with outer radius {outer_ring_radius}m",
+            f"Tilt equatorial ring at {coords.latitude:.1f}° (= latitude)",
+            "Mount meridian ring vertically in north-south plane",
+            "Position horizon ring horizontally",
+            "Mark degree scales on all rings",
+            "Ensure rings can rotate independently",
+            "Install sighting devices on ring intersections",
+            "Align system with true north-south direction"
+        ]
+        
+        accuracy_metrics = {
+            "angular_measurement_accuracy": 0.2,  # degrees
+            "tracking_accuracy": 0.5,
+            "declination_range": 47.0,  # +/- 23.5 degrees
+            "hour_angle_range": 360.0
+        }
+        
+        return YantraSpecs(
+            name="Chakra Yantra (Ring Dial)",
+            coordinates=coords,
+            dimensions=dimensions,
+            angles=angles,
+            construction_notes=construction_notes,
+            accuracy_metrics=accuracy_metrics
+        )
+    
+    def generate_unnatamsa_yantra(self, coords: Coordinates) -> YantraSpecs:
+        """
+        Generate Unnatamsa Yantra dimensions
+        
+        The Unnatamsa Yantra is used for measuring solar altitude
+        angles throughout the day and seasons.
+        """
+        
+        lat_rad = math.radians(coords.latitude)
+        
+        # Base dimensions
+        quadrant_radius = 2.0  # meters
+        base_length = quadrant_radius * 1.5
+        
+        # Solar altitude calculations for different seasons
+        max_altitude_summer = 90 - abs(coords.latitude - 23.44)
+        max_altitude_winter = 90 - abs(coords.latitude + 23.44)
+        max_altitude_equinox = 90 - abs(coords.latitude)
+        
+        # Hour markings for solar tracking
+        hour_markings = {}
+        for hour in range(6, 19):  # Daylight hours
+            hour_angle = (hour - 12) * 15
+            hour_markings[f"solar_hour_{hour:02d}"] = hour_angle
+        
+        # Altitude scale on the quadrant
+        altitude_scale = {}
+        for alt in range(0, 91, 5):  # 0° to 90° in 5° steps
+            scale_position = alt  # Direct angular mapping
+            altitude_scale[f"altitude_{alt:02d}"] = scale_position
+        
+        dimensions = {
+            "quadrant_radius": quadrant_radius,
+            "base_length": base_length,
+            "base_width": quadrant_radius * 1.2,
+            "vertical_post_height": quadrant_radius,
+            "arc_thickness": 0.08,
+            "sighting_arm_length": quadrant_radius * 0.9,
+            "counterweight_radius": 0.2
+        }
+        
+        angles = {
+            "quadrant_orientation": 0,  # Facing south
+            "max_altitude_summer": max_altitude_summer,
+            "max_altitude_winter": max_altitude_winter,
+            "max_altitude_equinox": max_altitude_equinox,
+            "latitude_complement": 90 - coords.latitude,
+            **hour_markings,
+            **altitude_scale
+        }
+        
+        construction_notes = [
+            f"Construct quarter-circle arc of radius {quadrant_radius}m",
+            "Mount vertically facing south",
+            f"Maximum summer altitude: {max_altitude_summer:.1f}°",
+            f"Maximum winter altitude: {max_altitude_winter:.1f}°",
+            "Install movable sighting arm along the arc",
+            "Mark altitude scale every 5° on the arc",
+            "Add hour markings for solar time tracking",
+            "Ensure precise vertical and horizontal alignment"
+        ]
+        
+        accuracy_metrics = {
+            "altitude_measurement_accuracy": 0.25,  # degrees
+            "time_determination_accuracy": 5.0,  # minutes
+            "seasonal_variation_tracking": 1.0,  # degrees
+            "measurement_range": 90.0  # degrees altitude
+        }
+        
+        return YantraSpecs(
+            name="Unnatamsa Yantra (Solar Altitude Instrument)",
+            coordinates=coords,
+            dimensions=dimensions,
+            angles=angles,
+            construction_notes=construction_notes,
+            accuracy_metrics=accuracy_metrics
+        )
+    
     def calculate_solar_position(self, coords: Coordinates, date_time: datetime) -> Dict[str, float]:
         """
         Calculate solar position (elevation and azimuth) for given coordinates and time

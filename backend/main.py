@@ -157,6 +157,13 @@ async def generate_yantra(request: YantraRequest):
         print(f"Generating yantra: {request.yantra_type} at {request.coordinates.latitude}, {request.coordinates.longitude}")
         print(f"Reference location: {request.reference_location}")
         
+        # Validate yantra_type is not empty
+        if not request.yantra_type or request.yantra_type.strip() == "":
+            raise HTTPException(
+                status_code=400,
+                detail="yantra_type cannot be empty. Please specify a valid yantra type."
+            )
+        
         # Convert coordinates
         coords = Coordinates(
             latitude=request.coordinates.latitude,
@@ -198,9 +205,14 @@ async def generate_yantra(request: YantraRequest):
             except (TypeError, ValueError):
                 specs = engine.generate_unnatamsa_yantra(coords)
         else:
+            available_types = [
+                "samrat_yantra", "rama_yantra", "jai_prakash_yantra", 
+                "digamsa_yantra", "dhruva_protha_chakra", "kapala_yantra", 
+                "chakra_yantra", "unnatamsa_yantra"
+            ]
             raise HTTPException(
                 status_code=400, 
-                detail=f"Unknown yantra type: {request.yantra_type}"
+                detail=f"Unknown yantra type: '{request.yantra_type}'. Available types: {', '.join(available_types)}"
             )
         
         # Apply scale factor if provided

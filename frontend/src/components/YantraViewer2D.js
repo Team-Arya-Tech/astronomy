@@ -112,52 +112,178 @@ const YantraViewer2D = ({ yantraType, specs, astronomicalData }) => {
     const baseLength = (specs.dimensions.base_length || 25) * scale;
     const baseWidth = (specs.dimensions.base_width || 20) * scale;
     const gnomonHeight = (specs.dimensions.gnomon_height || 20) * scale;
+    const gnomonAngle = specs.angles?.gnomon_angle || 0;
     
     if (viewMode === 'top') {
-      // Top view - triangular gnomon
+      // PRECISE TOP VIEW using API data
       ctx.strokeStyle = '#8B4513';
       ctx.lineWidth = 3;
       
-      // Base rectangle
+      // Base platform (scaled rectangle)
       ctx.strokeRect(centerX - baseLength/2, centerY - baseWidth/2, baseLength, baseWidth);
+      ctx.fillStyle = 'rgba(245, 243, 237, 0.3)';
+      ctx.fillRect(centerX - baseLength/2, centerY - baseWidth/2, baseLength, baseWidth);
       
-      // Gnomon triangle (top view)
+      // Gnomon centerline (North-South axis)
+      ctx.strokeStyle = '#228B22';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
       ctx.beginPath();
       ctx.moveTo(centerX, centerY - baseWidth/2);
-      ctx.lineTo(centerX - baseLength/4, centerY + baseWidth/2);
-      ctx.lineTo(centerX + baseLength/4, centerY + baseWidth/2);
-      ctx.closePath();
+      ctx.lineTo(centerX, centerY + baseWidth/2);
       ctx.stroke();
+      ctx.setLineDash([]);
       
-      // Hour markings
-      for (let i = -6; i <= 6; i++) {
-        const x = centerX + (i * baseLength/24);
-        ctx.beginPath();
-        ctx.moveTo(x, centerY - baseWidth/2);
-        ctx.lineTo(x, centerY - baseWidth/2 + 10);
-        ctx.stroke();
-        
-        if (showDimensions) {
-          ctx.fillStyle = '#654321';
-          ctx.fillText(`${i + 12}h`, x - 8, centerY - baseWidth/2 - 5);
+      // East and West dial faces
+      const dialThickness = 8;
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 4;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      
+      // East dial face (right side)
+      ctx.fillRect(centerX + baseLength/2 - dialThickness/2, centerY - baseWidth/2, dialThickness, baseWidth);
+      ctx.strokeRect(centerX + baseLength/2 - dialThickness/2, centerY - baseWidth/2, dialThickness, baseWidth);
+      
+      // West dial face (left side) 
+      ctx.fillRect(centerX - baseLength/2 - dialThickness/2, centerY - baseWidth/2, dialThickness, baseWidth);
+      ctx.strokeRect(centerX - baseLength/2 - dialThickness/2, centerY - baseWidth/2, dialThickness, baseWidth);
+      
+      // PRECISE HOUR LINES using API calculated angles
+      ctx.strokeStyle = '#DC143C';
+      ctx.lineWidth = 2;
+      
+      if (specs.angles) {
+        // Draw precise hour lines using API data
+        for (let hour = 0; hour <= 12; hour++) {
+          const hourKey = `hour_${hour.toString().padStart(2, '0')}`;
+          if (specs.angles[hourKey] !== undefined) {
+            const hourAngle = specs.angles[hourKey];
+            const angleRad = (hourAngle * Math.PI) / 180;
+            
+            // Calculate precise hour line endpoints
+            const lineLength = baseLength * 0.45;
+            const endX = centerX + Math.sin(angleRad) * lineLength;
+            const endY = centerY - Math.cos(angleRad) * lineLength;
+            
+            // Draw hour line from gnomon center to dial face
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // Hour marking point on dial face
+            ctx.fillStyle = '#DC143C';
+            ctx.beginPath();
+            ctx.arc(endX, endY, 3, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Hour labels with precise positioning
+            if (showDimensions && hour >= 6 && hour <= 18) {
+              ctx.fillStyle = '#654321';
+              ctx.font = 'bold 11px Arial';
+              const displayHour = hour === 0 ? 12 : hour;
+              ctx.fillText(`${displayHour}h`, endX + 8, endY + 4);
+            }
+          }
         }
       }
       
-    } else if (viewMode === 'side') {
-      // Side view
-      ctx.strokeRect(centerX - baseLength/2, centerY + 50, baseLength, 20);
-      
-      // Gnomon triangle (side view)
+      // Add latitude-specific gnomon angle indicator
+      ctx.strokeStyle = '#4169E1';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+      const gnomonRad = (gnomonAngle * Math.PI) / 180;
+      const gnomonLineLength = baseLength * 0.3;
       ctx.beginPath();
-      ctx.moveTo(centerX, centerY + 50);
-      ctx.lineTo(centerX, centerY + 50 - gnomonHeight);
-      ctx.lineTo(centerX + baseLength/2, centerY + 50);
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + Math.sin(gnomonRad) * gnomonLineLength, 
+                 centerY - Math.cos(gnomonRad) * gnomonLineLength);
       ctx.stroke();
+      ctx.setLineDash([]);
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#4169E1';
+        ctx.font = '10px Arial';
+        ctx.fillText(`Gnomon: ${gnomonAngle.toFixed(1)}°`, centerX + 10, centerY - baseWidth/2 - 20);
+      }
+      
+    } else if (viewMode === 'side') {
+      // PRECISE SIDE VIEW with correct gnomon angle
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Base platform (side view)
+      const baseThickness = 20;
+      ctx.fillStyle = 'rgba(245, 243, 237, 0.3)';
+      ctx.fillRect(centerX - baseLength/2, centerY + 50, baseLength, baseThickness);
+      ctx.strokeRect(centerX - baseLength/2, centerY + 50, baseLength, baseThickness);
+      
+      // Triangular gnomon at precise latitude angle
+      const gnomonRadians = (gnomonAngle * Math.PI) / 180;
+      const gnomonTop = gnomonHeight * Math.cos(gnomonRadians);
+      const gnomonOffset = gnomonHeight * Math.sin(gnomonRadians);
+      
+      ctx.fillStyle = 'rgba(135, 206, 235, 0.5)';
+      ctx.beginPath();
+      ctx.moveTo(centerX - baseLength/2, centerY + 50);  // South base
+      ctx.lineTo(centerX + baseLength/2, centerY + 50);  // North base
+      ctx.lineTo(centerX + gnomonOffset, centerY + 50 - gnomonTop);  // Gnomon top
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+      // Dial faces (vertical)
+      const dialHeight = baseWidth;
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 4;
+      
+      // East dial (right)
+      ctx.beginPath();
+      ctx.moveTo(centerX + baseLength/2, centerY + 50);
+      ctx.lineTo(centerX + baseLength/2, centerY + 50 - dialHeight);
+      ctx.stroke();
+      
+      // West dial (left)
+      ctx.beginPath();
+      ctx.moveTo(centerX - baseLength/2, centerY + 50);
+      ctx.lineTo(centerX - baseLength/2, centerY + 50 - dialHeight);
+      ctx.stroke();
+      
+      // Shadow rays for key hours
+      if (specs.angles) {
+        ctx.strokeStyle = '#FF6347';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        
+        [6, 9, 12, 15, 18].forEach(hour => {
+          const hourKey = `hour_${hour.toString().padStart(2, '0')}`;
+          if (specs.angles[hourKey] !== undefined) {
+            const shadowAngle = specs.angles[hourKey] * (Math.PI / 180);
+            const shadowEndX = centerX + Math.sin(shadowAngle) * baseLength * 0.4;
+            const shadowEndY = centerY + 50 - Math.abs(Math.cos(shadowAngle)) * dialHeight * 0.8;
+            
+            ctx.beginPath();
+            ctx.moveTo(centerX + gnomonOffset, centerY + 50 - gnomonTop);
+            ctx.lineTo(shadowEndX, shadowEndY);
+            ctx.stroke();
+          }
+        });
+        ctx.setLineDash([]);
+      }
     }
     
-    // Dimensions
+    // Enhanced dimensions with API data
     if (showDimensions) {
       drawDimensions(ctx, centerX, centerY, baseLength, baseWidth, scale);
+      
+      // Additional precise dimensions from API
+      ctx.fillStyle = '#4169E1';
+      ctx.font = '12px Arial';
+      const coordText = `Lat: ${specs.coordinates?.latitude?.toFixed(4)}°N, Lon: ${specs.coordinates?.longitude?.toFixed(4)}°E`;
+      ctx.fillText(coordText, centerX - baseLength/2, centerY + baseWidth/2 + 60);
+      
+      const scaleText = `Scale Factor: ${specs.dimensions?.latitude_scale_factor?.toFixed(3)}`;
+      ctx.fillText(scaleText, centerX - baseLength/2, centerY + baseWidth/2 + 80);
     }
   };
 

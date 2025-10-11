@@ -350,7 +350,7 @@ const YantraGenerator = () => {
                 variant="contained"
                 size="large"
                 onClick={generateYantra}
-                disabled={loading || !coordinates.latitude || !coordinates.longitude}
+                disabled={loading || !coordinates.latitude || !coordinates.longitude || !selectedYantra}
                 sx={{ mb: 2, py: 1.5 }}
                 startIcon={loading ? <CircularProgress size={20} /> : <ThreeDRotation />}
               >
@@ -360,6 +360,15 @@ const YantraGenerator = () => {
               {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   {error}
+                </Alert>
+              )}
+              
+              {(!selectedYantra || !coordinates.latitude || !coordinates.longitude) && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Please select:
+                  {!selectedYantra && " • Yantra Type"}
+                  {!coordinates.latitude && " • Latitude"} 
+                  {!coordinates.longitude && " • Longitude"}
                 </Alert>
               )}
               

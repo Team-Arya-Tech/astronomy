@@ -10,6 +10,8 @@ from pydantic import BaseModel, Field
 from typing import Dict, List, Optional
 from datetime import datetime
 import uvicorn
+import os
+import tempfile
 
 from parametric_engine import ParametricGeometryEngine, Coordinates, YantraSpecs
 
@@ -332,9 +334,15 @@ async def export_yantra_blueprint(
         # Export in requested format
         if format == "pdf":
             # Generate PDF blueprint
-            from blueprint_generator import BlueprintGenerator
-            pdf_generator = BlueprintGenerator()
-            pdf_content = pdf_generator.generate_pdf_blueprint(specs, coords, reference_location)
+            from blueprint_generator import YantraBlueprintGenerator
+            pdf_generator = YantraBlueprintGenerator()
+            # Create temporary file for PDF output
+            import tempfile
+            with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp_file:
+                pdf_path = pdf_generator.export_blueprint(specs, 'pdf', tempfile.gettempdir())
+                with open(pdf_path, 'rb') as pdf_file:
+                    pdf_content = pdf_file.read()
+                os.unlink(pdf_path)  # Clean up temp file
             
             return Response(
                 content=pdf_content,

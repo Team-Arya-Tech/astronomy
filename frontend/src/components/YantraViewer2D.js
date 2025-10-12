@@ -47,8 +47,10 @@ const YantraViewer2D = ({ yantraType, specs, astronomicalData }) => {
     // Scale factor for drawing
     const drawScale = scale * 20; // Adjust base scale
     
-    // Draw yantra based on type
-    switch (yantraType) {
+    // Draw yantra based on type (handle both old and new formats)
+    const normalizedType = yantraType?.toLowerCase().replace('_yantra', '').replace(' yantra', '');
+    
+    switch (normalizedType) {
       case 'samrat':
         drawSamratYantra(ctx, centerX, centerY, drawScale);
         break;
@@ -56,12 +58,14 @@ const YantraViewer2D = ({ yantraType, specs, astronomicalData }) => {
         drawRamaYantra(ctx, centerX, centerY, drawScale);
         break;
       case 'jai_prakash':
+      case 'jai prakash':
         drawJaiPrakashYantra(ctx, centerX, centerY, drawScale);
         break;
       case 'digamsa':
         drawDigamsaYantra(ctx, centerX, centerY, drawScale);
         break;
       case 'dhruva_protha_chakra':
+      case 'dhruva protha chakra':
         drawDhruvaProthaChakra(ctx, centerX, centerY, drawScale);
         break;
       case 'kapala':
@@ -292,27 +296,56 @@ const YantraViewer2D = ({ yantraType, specs, astronomicalData }) => {
     
     const outerRadius = (specs.dimensions.outer_radius || 8) * scale;
     const innerRadius = (specs.dimensions.inner_radius || 3) * scale;
+    const wallHeight = specs.dimensions.wall_height || 3;
+    const numSectors = specs.angles?.num_sectors || specs.dimensions.num_sectors || 12;
+    const scaleDisplayFactor = specs.dimensions.latitude_scale_factor || 1.0;
+    const celestialPoleAlt = specs.angles?.celestial_pole_altitude || 0;
     
-    // Outer circle
+    // Enhanced Rama Yantra drawing with location-specific features
+    
+    // 1. OUTER CYLINDRICAL WALL
+    ctx.strokeStyle = '#8B4513';
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
     ctx.stroke();
     
-    // Inner circle
+    // 2. INNER MEASUREMENT AREA
+    ctx.strokeStyle = '#4682B4';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI);
     ctx.stroke();
+    ctx.setLineDash([]);
     
-    // Central pillar
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
-    ctx.fill();
+    // 3. ENHANCED ALTITUDE SCALE MARKINGS (concentric circles)
+    ctx.strokeStyle = '#228B22';
+    ctx.lineWidth = 1;
+    for (let alt = 10; alt <= 80; alt += 10) {
+      const altRadius = innerRadius + (outerRadius - innerRadius) * (alt / 90);
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, altRadius, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      if (showDimensions && alt % 20 === 0) {
+        ctx.fillStyle = '#228B22';
+        ctx.font = '10px Arial';
+        ctx.fillText(`${alt}°`, centerX + altRadius + 5, centerY);
+      }
+    }
     
-    // Degree markings
-    for (let i = 0; i < 360; i += 30) {
-      const angle = (i * Math.PI) / 180;
-      const x1 = centerX + Math.cos(angle) * (outerRadius - 10);
-      const y1 = centerY + Math.sin(angle) * (outerRadius - 10);
+    // 4. ENHANCED SECTOR DIVISIONS (azimuth grid)
+    ctx.strokeStyle = '#DC143C';
+    ctx.lineWidth = 1.5;
+    const sectorAngle = 360 / numSectors;
+    
+    for (let i = 0; i < numSectors; i++) {
+      const angle = (i * sectorAngle * Math.PI) / 180;
+      
+      // Main sector line
+      const x1 = centerX + Math.cos(angle) * innerRadius;
+      const y1 = centerY + Math.sin(angle) * innerRadius;
       const x2 = centerX + Math.cos(angle) * outerRadius;
       const y2 = centerY + Math.sin(angle) * outerRadius;
       
@@ -321,57 +354,262 @@ const YantraViewer2D = ({ yantraType, specs, astronomicalData }) => {
       ctx.lineTo(x2, y2);
       ctx.stroke();
       
+      // Enhanced azimuth labels with precise angles
       if (showDimensions) {
-        ctx.fillStyle = '#654321';
-        ctx.fillText(`${i}°`, x1 - 10, y1);
+        const labelRadius = outerRadius + 15;
+        const labelX = centerX + Math.cos(angle) * labelRadius;
+        const labelY = centerY + Math.sin(angle) * labelRadius;
+        
+        ctx.fillStyle = '#DC143C';
+        ctx.font = 'bold 11px Arial';
+        const azimuthDegree = (i * sectorAngle) % 360;
+        ctx.fillText(`${azimuthDegree}°`, labelX - 10, labelY + 3);
       }
+    }
+    
+    // 5. CARDINAL DIRECTION MARKERS (enhanced)
+    const cardinals = [
+      { dir: 'N', angle: -Math.PI/2, color: '#FF0000' },
+      { dir: 'E', angle: 0, color: '#FF0000' },
+      { dir: 'S', angle: Math.PI/2, color: '#FF0000' },
+      { dir: 'W', angle: Math.PI, color: '#FF0000' }
+    ];
+    
+    cardinals.forEach(({ dir, angle, color }) => {
+      const markerRadius = outerRadius + 30;
+      const x = centerX + Math.cos(angle) * markerRadius;
+      const y = centerY + Math.sin(angle) * markerRadius;
+      
+      ctx.fillStyle = color;
+      ctx.font = 'bold 16px Arial';
+      ctx.fillText(dir, x - 6, y + 6);
+    });
+    
+    // 6. LOCATION-SPECIFIC INFORMATION DISPLAY
+    if (showDimensions) {
+      const infoY = centerY - outerRadius - 50;
+      
+      ctx.fillStyle = '#2F4F4F';
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText(`Latitude Scale: ${scaleDisplayFactor.toFixed(3)}`, centerX - 100, infoY - 35);
+      ctx.fillText(`Wall Height: ${wallHeight.toFixed(1)}m`, centerX - 100, infoY - 20);
+      ctx.fillText(`Sectors: ${numSectors} divisions`, centerX - 100, infoY - 5);
+      ctx.fillText(`Pole Altitude: ${celestialPoleAlt.toFixed(1)}°`, centerX - 100, infoY + 10);
+      
+      // Observable sky fraction indicator
+      const skyFraction = specs.dimensions.observable_sky_fraction || 0.5;
+      ctx.fillText(`Observable Sky: ${(skyFraction * 100).toFixed(1)}%`, centerX - 100, infoY + 25);
+      
+      // Show this is location-specific
+      ctx.fillStyle = '#8B0000';
+      ctx.font = 'italic 10px Arial';
+      ctx.fillText('↑ Location-specific calculations', centerX - 100, infoY + 40);
+    }
+    
+    // 7. CENTRAL OBSERVATION AREA
+    ctx.fillStyle = '#F0E68C';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = '#8B4513';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // 8. ENHANCED WALL THICKNESS INDICATION (for side view hint)
+    if (viewMode !== 'top') {
+      const wallThickness = 5;
+      ctx.strokeStyle = '#696969';
+      ctx.lineWidth = wallThickness;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, outerRadius - wallThickness/2, 0, 2 * Math.PI);
+      ctx.stroke();
     }
   };
 
   const drawJaiPrakashYantra = (ctx, centerX, centerY, scale) => {
     if (!specs?.dimensions) return;
     
-    const radius = (specs.dimensions.hemisphere_radius || 8) * scale;
+    // ENHANCED JAI PRAKASH YANTRA with comprehensive astronomical features
+    const hemisphereRadius = (specs.dimensions.hemisphere_radius || 8) * scale;
+    const equatorialRadius = (specs.dimensions.equatorial_radius || 6) * scale;
+    const bowlDepth = (specs.dimensions.bowl_depth || 6.5) * scale;
+    const rimThickness = (specs.dimensions.rim_thickness || 0.4) * scale;
+    
+    // Location-specific calculations
+    const celestialPoleAlt = specs.angles?.pole_altitude || 28.7;
+    const celestialEquatorAngle = specs.angles?.celestial_equator_angle || 61.3;
+    const scaleDisplayFactor = specs.angles?.latitude_scale_factor || 1.0;
     
     if (viewMode === 'top') {
-      // Top view - circular rim
+      // 1. MAIN HEMISPHERE STRUCTURE
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Outer rim
       ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+      ctx.arc(centerX, centerY, hemisphereRadius, 0, 2 * Math.PI);
       ctx.stroke();
       
-      // Inner markings for celestial coordinates
+      // Inner bowl rim
+      ctx.strokeStyle = '#A0522D';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, hemisphereRadius - rimThickness, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      // 2. ENHANCED DECLINATION CIRCLES (based on API data)
       ctx.strokeStyle = '#CD853F';
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1.5;
       
-      // Declination circles
-      for (let r = radius/4; r < radius; r += radius/4) {
-        ctx.beginPath();
-        ctx.arc(centerX, centerY, r, 0, 2 * Math.PI);
-        ctx.stroke();
+      // Extract declination values from API
+      const declinations = [];
+      if (specs.angles) {
+        for (let key in specs.angles) {
+          if (key.startsWith('decl_circle_declination_')) {
+            const declValue = specs.angles[key];
+            declinations.push(declValue);
+          }
+        }
       }
       
-      // Hour lines
-      for (let i = 0; i < 24; i++) {
-        const angle = (i * 15 * Math.PI) / 180;
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.lineTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
-        ctx.stroke();
+      // Draw declination circles with proper astronomical spacing
+      declinations.forEach((decl, index) => {
+        // Calculate radius based on declination and hemisphere geometry
+        const declRadiusFactor = Math.cos((Math.abs(decl) * Math.PI) / 180);
+        const declRadius = equatorialRadius * declRadiusFactor;
+        
+        if (declRadius > 5 && declRadius < hemisphereRadius - rimThickness) {
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, declRadius, 0, 2 * Math.PI);
+          ctx.stroke();
+          
+          // Label key declination circles
+          if (Math.abs(decl) % 15 === 0 && showDimensions) {
+            ctx.fillStyle = '#8B4513';
+            ctx.font = '10px Arial';
+            const label = decl >= 0 ? `+${decl}°` : `${decl}°`;
+            ctx.fillText(label, centerX + declRadius - 15, centerY - 5);
+          }
+        }
+      });
+      
+      // 3. ENHANCED HOUR LINES (location-specific hour angles from API)
+      ctx.strokeStyle = '#B8860B';
+      ctx.lineWidth = 1.2;
+      
+      for (let hour = 0; hour < 24; hour++) {
+        const hourKey = `hour_angle_hour_${hour.toString().padStart(2, '0')}`;
+        let hourAngle = specs.angles?.[hourKey];
+        
+        if (hourAngle !== undefined) {
+          // Convert to radians and adjust for display
+          const angle = (hourAngle * Math.PI) / 180;
+          
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(
+            centerX + Math.cos(angle - Math.PI/2) * (hemisphereRadius - rimThickness),
+            centerY + Math.sin(angle - Math.PI/2) * (hemisphereRadius - rimThickness)
+          );
+          ctx.stroke();
+          
+          // Label every 3 hours
+          if (hour % 3 === 0 && showDimensions) {
+            const labelRadius = hemisphereRadius - rimThickness + 15;
+            const labelX = centerX + Math.cos(angle - Math.PI/2) * labelRadius;
+            const labelY = centerY + Math.sin(angle - Math.PI/2) * labelRadius;
+            
+            ctx.fillStyle = '#8B4513';
+            ctx.font = 'bold 11px Arial';
+            ctx.fillText(`${hour}h`, labelX - 8, labelY + 4);
+          }
+        }
       }
+      
+      // 4. CELESTIAL EQUATOR (specially emphasized)
+      ctx.strokeStyle = '#FF6347';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, equatorialRadius, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#FF6347';
+        ctx.font = 'bold 10px Arial';
+        ctx.fillText('Celestial Equator', centerX + equatorialRadius + 5, centerY);
+      }
+      
+      // 5. CARDINAL DIRECTIONS & ZENITH POINT
+      ctx.fillStyle = '#8B0000';
+      ctx.font = 'bold 14px Arial';
+      
+      // Zenith at center
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 3, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.fillText('Z', centerX - 5, centerY - 8);
+      
+      // Cardinal points
+      const cardinalRadius = hemisphereRadius + 20;
+      ctx.font = 'bold 12px Arial';
+      ctx.fillText('N', centerX - 5, centerY - cardinalRadius);
+      ctx.fillText('S', centerX - 5, centerY + cardinalRadius + 15);
+      ctx.fillText('E', centerX + cardinalRadius - 5, centerY + 5);
+      ctx.fillText('W', centerX - cardinalRadius - 5, centerY + 5);
       
     } else if (viewMode === 'side') {
-      // Side view - hemisphere profile
+      // ENHANCED SIDE VIEW - showing hemisphere profile with bowl depth
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Hemisphere profile
       ctx.beginPath();
-      ctx.arc(centerX, centerY + radius/2, radius, Math.PI, 0);
+      ctx.arc(centerX, centerY, hemisphereRadius, Math.PI, 0);
       ctx.stroke();
       
-      // Base line
+      // Base rim
       ctx.beginPath();
-      ctx.moveTo(centerX - radius, centerY + radius/2);
-      ctx.lineTo(centerX + radius, centerY + radius/2);
+      ctx.moveTo(centerX - hemisphereRadius, centerY);
+      ctx.lineTo(centerX + hemisphereRadius, centerY);
       ctx.stroke();
+      
+      // Bowl depth indication
+      ctx.strokeStyle = '#CD853F';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX, centerY - bowlDepth);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#8B4513';
+        ctx.font = '11px Arial';
+        ctx.fillText(`Bowl Depth: ${(bowlDepth/scale).toFixed(1)}m`, centerX + hemisphereRadius + 10, centerY - 20);
+        ctx.fillText(`Pole Alt: ${celestialPoleAlt.toFixed(1)}°`, centerX + hemisphereRadius + 10, centerY - 5);
+      }
     }
     
+    // 6. LOCATION-SPECIFIC INFORMATION DISPLAY
+    if (showDimensions) {
+      const infoY = centerY - hemisphereRadius - 60;
+      
+      ctx.fillStyle = '#2F4F4F';
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText(`Hemisphere R: ${(hemisphereRadius/scale).toFixed(1)}m`, centerX - 120, infoY - 35);
+      ctx.fillText(`Equatorial R: ${(equatorialRadius/scale).toFixed(1)}m`, centerX - 120, infoY - 20);
+      ctx.fillText(`Scale Factor: ${scaleDisplayFactor.toFixed(3)}`, centerX - 120, infoY - 5);
+      ctx.fillText(`Pole Altitude: ${celestialPoleAlt.toFixed(1)}°`, centerX - 120, infoY + 10);
+      ctx.fillText(`Equator Angle: ${celestialEquatorAngle.toFixed(1)}°`, centerX - 120, infoY + 25);
+      
+      // Show this is location-specific
+      ctx.fillStyle = '#8B0000';
+      ctx.font = 'italic 10px Arial';
+      ctx.fillText('↑ Location-specific hemisphere geometry', centerX - 120, infoY + 40);
+    }
+    
+    // Reset styles
     ctx.strokeStyle = '#8B4513';
     ctx.lineWidth = 2;
   };

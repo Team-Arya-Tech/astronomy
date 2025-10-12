@@ -701,18 +701,19 @@ class YantraBlueprintGenerator:
         }
     
     def create_rama_yantra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
-        """Create detailed blueprint for Rama Yantra"""
+        """Create detailed blueprint for Rama Yantra using enhanced calculations"""
         
         dimensions = specs['dimensions']
         angles = specs['angles']
+        coordinates = specs['coordinates']
         
         pages = []
         
-        # Plan view
+        # Page 1: Plan view with sector divisions and altitude markings
         plan_elements = []
         plan_dimensions = []
         
-        # Outer circle
+        # Outer cylindrical wall
         outer_circle = Circle(
             (0, 0),
             dimensions['outer_radius'],
@@ -722,7 +723,7 @@ class YantraBlueprintGenerator:
         )
         plan_elements.append(outer_circle)
         
-        # Inner circle
+        # Inner measurement circle
         inner_circle = Circle(
             (0, 0),
             dimensions['inner_radius'],
@@ -733,43 +734,230 @@ class YantraBlueprintGenerator:
         )
         plan_elements.append(inner_circle)
         
-        # Sector divisions
-        for i in range(int(angles['num_sectors'])):
-            angle = i * np.radians(angles['sector_angle'])
+        # Enhanced sector divisions with altitude-azimuth markings
+        num_sectors = int(dimensions.get('num_sectors', 12))
+        sector_angle = 360.0 / num_sectors
+        
+        # Add main sector division lines
+        for i in range(num_sectors):
+            angle_deg = i * sector_angle
+            angle_rad = np.radians(angle_deg)
+            
+            # Sector boundary line
             line = plt.Line2D(
-                [0, dimensions['outer_radius'] * np.cos(angle)],
-                [0, dimensions['outer_radius'] * np.sin(angle)],
+                [dimensions['inner_radius'] * np.cos(angle_rad), dimensions['outer_radius'] * np.cos(angle_rad)],
+                [dimensions['inner_radius'] * np.sin(angle_rad), dimensions['outer_radius'] * np.sin(angle_rad)],
                 linewidth=self.line_weights['construction'],
                 color=self.colors['construction']
             )
             plan_elements.append(line)
+            
+            # Sector label (azimuth marking)
+            label_radius = dimensions['outer_radius'] + 0.5
+            label_x = label_radius * np.cos(angle_rad)
+            label_y = label_radius * np.sin(angle_rad)
+            plan_elements.append(plt.text(label_x, label_y, f'{angle_deg:.0f}°', 
+                                        fontsize=10, ha='center', va='center',
+                                        color=self.colors['construction']))
+        
+        # Add altitude scale markings (concentric circles)
+        for alt in range(0, 91, 10):  # Every 10° altitude
+            if alt > 0:  # Skip center point
+                # Calculate radius for this altitude marking
+                scale_radius = dimensions['inner_radius'] + (dimensions['outer_radius'] - dimensions['inner_radius']) * (alt / 90.0)
+                
+                alt_circle = Circle(
+                    (0, 0),
+                    scale_radius,
+                    linewidth=self.line_weights['construction'],
+                    edgecolor=self.colors['construction'],
+                    facecolor='none',
+                    linestyle='--',
+                    alpha=0.6
+                )
+                plan_elements.append(alt_circle)
+                
+                # Altitude label
+                plan_elements.append(plt.text(scale_radius, 0, f'{alt}°', 
+                                            fontsize=8, ha='left', va='center',
+                                            color=self.colors['construction']))
+        
+        # Cardinal direction markers
+        cardinals = [('N', 0), ('E', 90), ('S', 180), ('W', 270)]
+        for direction, angle_deg in cardinals:
+            angle_rad = np.radians(angle_deg)
+            marker_radius = dimensions['outer_radius'] + 1.0
+            marker_x = marker_radius * np.cos(angle_rad)
+            marker_y = marker_radius * np.sin(angle_rad)
+            
+            plan_elements.append(plt.text(marker_x, marker_y, direction, 
+                                        fontsize=14, ha='center', va='center',
+                                        weight='bold', color='red'))
+        
+        # Dimensions
+        plan_dimensions.extend([
+            DrawingDimension(
+                (-dimensions['outer_radius'], -dimensions['outer_radius'] - 1.5),
+                (dimensions['outer_radius'], -dimensions['outer_radius'] - 1.5),
+                dimensions['outer_radius'] * 2,
+                "m",
+                "OUTER DIAMETER"
+            ),
+            DrawingDimension(
+                (-dimensions['inner_radius'], dimensions['outer_radius'] + 2.0),
+                (dimensions['inner_radius'], dimensions['outer_radius'] + 2.0),
+                dimensions['inner_radius'] * 2,
+                "m",
+                "INNER MEASUREMENT AREA"
+            )
+        ])
         
         pages.append(BlueprintPage(
-            title="RAMA YANTRA - PLAN VIEW",
+            title="RAMA YANTRA - PLAN VIEW WITH ALT-AZIMUTH GRID",
             scale="1:100",
             elements=plan_elements,
             dimensions=plan_dimensions,
             notes=[
                 f"Outer radius: {dimensions['outer_radius']:.2f}m",
                 f"Inner radius: {dimensions['inner_radius']:.2f}m",
-                f"Number of sectors: {int(angles['num_sectors'])}",
-                "Wall material: Reinforced concrete"
+                f"Wall height: {dimensions['wall_height']:.2f}m",
+                f"Number of sectors: {num_sectors}",
+                f"Optimized for latitude {coordinates.get('latitude', 'N/A'):.4f}°N",
+                "Altitude markings every 10° (0° to 90°)",
+                "Azimuth sectors provide 360° coverage",
+                "Wall material: Reinforced concrete M25"
+            ]
+        ))
+        
+        # Page 2: Cross-section showing wall construction
+        section_elements = []
+        section_dimensions = []
+        
+        # Ground level
+        ground_line = plt.Line2D(
+            [-dimensions['outer_radius'] - 1, dimensions['outer_radius'] + 1],
+            [0, 0],
+            linewidth=self.line_weights['construction'],
+            color=self.colors['construction'],
+            linestyle='-'
+        )
+        section_elements.append(ground_line)
+        
+        # Cylindrical wall cross-section
+        wall_thickness = dimensions.get('wall_thickness', 0.3)
+        wall_height = dimensions['wall_height']
+        
+        # Outer wall
+        outer_wall_left = plt.Line2D(
+            [-dimensions['outer_radius'], -dimensions['outer_radius']],
+            [0, wall_height],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(outer_wall_left)
+        
+        outer_wall_right = plt.Line2D(
+            [dimensions['outer_radius'], dimensions['outer_radius']],
+            [0, wall_height],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(outer_wall_right)
+        
+        # Inner wall
+        inner_wall_left = plt.Line2D(
+            [-dimensions['inner_radius'], -dimensions['inner_radius']],
+            [0, wall_height],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(inner_wall_left)
+        
+        inner_wall_right = plt.Line2D(
+            [dimensions['inner_radius'], dimensions['inner_radius']],
+            [0, wall_height],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(inner_wall_right)
+        
+        # Wall top connections
+        wall_top_outer = plt.Line2D(
+            [-dimensions['outer_radius'], -dimensions['inner_radius']],
+            [wall_height, wall_height],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(wall_top_outer)
+        
+        wall_top_inner = plt.Line2D(
+            [dimensions['inner_radius'], dimensions['outer_radius']],
+            [wall_height, wall_height],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(wall_top_inner)
+        
+        # Central observation area
+        central_area = Rectangle(
+            (-dimensions['inner_radius'], 0),
+            dimensions['inner_radius'] * 2,
+            0.1,
+            linewidth=self.line_weights['construction'],
+            edgecolor=self.colors['construction'],
+            facecolor='lightgreen',
+            alpha=0.3
+        )
+        section_elements.append(central_area)
+        
+        section_dimensions.extend([
+            DrawingDimension(
+                (-dimensions['outer_radius'] - 1.0, 0),
+                (-dimensions['outer_radius'] - 1.0, wall_height),
+                wall_height,
+                "m",
+                "WALL HEIGHT"
+            ),
+            DrawingDimension(
+                (-dimensions['outer_radius'], -0.5),
+                (dimensions['outer_radius'], -0.5),
+                dimensions['outer_radius'] * 2,
+                "m",
+                "OVERALL DIAMETER"
+            )
+        ])
+        
+        pages.append(BlueprintPage(
+            title="RAMA YANTRA - CROSS SECTION",
+            scale="1:100",
+            elements=section_elements,
+            dimensions=section_dimensions,
+            notes=[
+                f"Wall thickness: {wall_thickness:.2f}m",
+                f"Foundation depth: 0.5m minimum",
+                "Central observation platform level",
+                "Drainage channels in wall base",
+                "Concrete grade: M25 minimum",
+                "Surface finish: Smooth plaster or stone"
             ]
         ))
         
         return pages
     
     def create_jai_prakash_blueprint(self, specs: Dict) -> List[BlueprintPage]:
-        """Create detailed blueprint for Jai Prakash Yantra"""
+        """Create detailed blueprint for Jai Prakash Yantra using enhanced calculations"""
         
         dimensions = specs['dimensions']
+        angles = specs['angles']
+        coordinates = specs['coordinates']
         
         pages = []
         
-        # Plan view - circular rim
+        # Page 1: Plan view with celestial coordinate grid
         plan_elements = []
+        plan_dimensions = []
         
-        # Hemisphere outline (top view)
+        # Hemisphere opening (top view)
         hemisphere_circle = Circle(
             (0, 0),
             dimensions['hemisphere_radius'],
@@ -780,7 +968,7 @@ class YantraBlueprintGenerator:
         )
         plan_elements.append(hemisphere_circle)
         
-        # Rim
+        # Outer rim
         rim_outer = Circle(
             (0, 0),
             dimensions['hemisphere_radius'] + dimensions['rim_thickness'],
@@ -790,16 +978,239 @@ class YantraBlueprintGenerator:
         )
         plan_elements.append(rim_outer)
         
+        # Add declination circles (projected to plan view)
+        if 'declination_circles' in angles:
+            for decl_name, decl_data in angles['declination_circles'].items():
+                if isinstance(decl_data, dict) and 'radius' in decl_data:
+                    decl_radius = decl_data['radius']
+                    
+                    decl_circle = Circle(
+                        (0, 0),
+                        decl_radius,
+                        linewidth=self.line_weights['construction'],
+                        edgecolor=self.colors['seasonal_curves'],
+                        facecolor='none',
+                        linestyle='--',
+                        alpha=0.7
+                    )
+                    plan_elements.append(decl_circle)
+                    
+                    # Label declination
+                    decl_angle = decl_data.get('angular_position', 0)
+                    plan_elements.append(plt.text(decl_radius + 0.3, 0, f'{decl_angle:+.0f}°', 
+                                                fontsize=8, ha='left', va='center',
+                                                color=self.colors['seasonal_curves']))
+        
+        # Add hour circles (radial lines)
+        if 'hour_circles' in angles:
+            for hour_name, hour_data in angles['hour_circles'].items():
+                if isinstance(hour_data, dict) and 'azimuth' in hour_data:
+                    azimuth = hour_data['azimuth']
+                    azimuth_rad = np.radians(azimuth)
+                    
+                    # Hour line from center to rim
+                    hour_line = plt.Line2D(
+                        [0, dimensions['hemisphere_radius'] * np.cos(azimuth_rad)],
+                        [0, dimensions['hemisphere_radius'] * np.sin(azimuth_rad)],
+                        linewidth=self.line_weights['hour_lines'],
+                        color=self.colors['hour_lines'],
+                        alpha=0.6
+                    )
+                    plan_elements.append(hour_line)
+                    
+                    # Hour label
+                    label_radius = dimensions['hemisphere_radius'] + 0.4
+                    label_x = label_radius * np.cos(azimuth_rad)
+                    label_y = label_radius * np.sin(azimuth_rad)
+                    
+                    # Extract hour from hour_name (e.g., "hour_06" -> "6h")
+                    hour_num = hour_name.split('_')[-1] if '_' in hour_name else hour_name
+                    plan_elements.append(plt.text(label_x, label_y, f'{hour_num}h', 
+                                                fontsize=8, ha='center', va='center',
+                                                color=self.colors['hour_lines']))
+        
+        # Cardinal directions
+        cardinals = [('N', 0), ('E', 90), ('S', 180), ('W', 270)]
+        for direction, angle_deg in cardinals:
+            angle_rad = np.radians(angle_deg)
+            marker_radius = dimensions['hemisphere_radius'] + dimensions['rim_thickness'] + 0.8
+            marker_x = marker_radius * np.cos(angle_rad)
+            marker_y = marker_radius * np.sin(angle_rad)
+            
+            plan_elements.append(plt.text(marker_x, marker_y, direction, 
+                                        fontsize=14, ha='center', va='center',
+                                        weight='bold', color='red'))
+        
+        # Drainage channels (shown as small rectangles around rim)
+        for i in range(0, 360, 90):  # Every 90°
+            angle_rad = np.radians(i + 45)  # Offset by 45° from cardinals
+            drain_radius = dimensions['hemisphere_radius'] + dimensions['rim_thickness'] * 0.7
+            drain_x = drain_radius * np.cos(angle_rad)
+            drain_y = drain_radius * np.sin(angle_rad)
+            
+            drain_rect = Rectangle(
+                (drain_x - 0.1, drain_y - 0.1),
+                0.2, 0.2,
+                linewidth=self.line_weights['construction'],
+                edgecolor=self.colors['construction'],
+                facecolor='blue',
+                alpha=0.5
+            )
+            plan_elements.append(drain_rect)
+        
+        plan_dimensions.extend([
+            DrawingDimension(
+                (-dimensions['hemisphere_radius'], -dimensions['hemisphere_radius'] - 1.5),
+                (dimensions['hemisphere_radius'], -dimensions['hemisphere_radius'] - 1.5),
+                dimensions['hemisphere_radius'] * 2,
+                "m",
+                "HEMISPHERE DIAMETER"
+            ),
+            DrawingDimension(
+                (-dimensions['hemisphere_radius'] - dimensions['rim_thickness'], dimensions['hemisphere_radius'] + 2.0),
+                (dimensions['hemisphere_radius'] + dimensions['rim_thickness'], dimensions['hemisphere_radius'] + 2.0),
+                (dimensions['hemisphere_radius'] + dimensions['rim_thickness']) * 2,
+                "m",
+                "OVERALL DIAMETER"
+            )
+        ])
+        
         pages.append(BlueprintPage(
-            title="JAI PRAKASH YANTRA - PLAN VIEW",
+            title="JAI PRAKASH YANTRA - PLAN VIEW WITH CELESTIAL GRID",
             scale="1:100",
             elements=plan_elements,
-            dimensions=[],
+            dimensions=plan_dimensions,
             notes=[
                 f"Hemisphere radius: {dimensions['hemisphere_radius']:.2f}m",
-                "Excavated hemispherical bowl",
-                "Smooth interior surface finish",
-                "Drainage provision required"
+                f"Rim thickness: {dimensions['rim_thickness']:.2f}m",
+                f"Bowl depth: {dimensions['bowl_depth']:.2f}m",
+                f"Declination circles for ±30° range",
+                f"Hour circles for 24-hour solar tracking",
+                f"Optimized for latitude {coordinates.get('latitude', 'N/A'):.4f}°N",
+                "Interior surface: Smooth marble or polished stone",
+                "Drainage channels at cardinal offset positions"
+            ]
+        ))
+        
+        # Page 2: Cross-section showing hemispherical construction
+        section_elements = []
+        section_dimensions = []
+        
+        # Ground level
+        ground_line = plt.Line2D(
+            [-dimensions['hemisphere_radius'] - dimensions['rim_thickness'] - 1, 
+             dimensions['hemisphere_radius'] + dimensions['rim_thickness'] + 1],
+            [0, 0],
+            linewidth=self.line_weights['construction'],
+            color=self.colors['construction'],
+            linestyle='-'
+        )
+        section_elements.append(ground_line)
+        
+        # Hemisphere cross-section (semicircle)
+        theta = np.linspace(0, np.pi, 50)
+        hemisphere_x = dimensions['hemisphere_radius'] * np.cos(theta)
+        hemisphere_y = -dimensions['hemisphere_radius'] * np.sin(theta)  # Inverted for bowl
+        
+        # Hemisphere interior surface
+        hemisphere_line = plt.Line2D(
+            hemisphere_x, hemisphere_y,
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(hemisphere_line)
+        
+        # Rim cross-section
+        rim_left = plt.Line2D(
+            [-dimensions['hemisphere_radius'] - dimensions['rim_thickness'], -dimensions['hemisphere_radius']],
+            [0, 0],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(rim_left)
+        
+        rim_right = plt.Line2D(
+            [dimensions['hemisphere_radius'], dimensions['hemisphere_radius'] + dimensions['rim_thickness']],
+            [0, 0],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(rim_right)
+        
+        # Rim top surface
+        rim_top = plt.Line2D(
+            [-dimensions['hemisphere_radius'] - dimensions['rim_thickness'], 
+             dimensions['hemisphere_radius'] + dimensions['rim_thickness']],
+            [0.1, 0.1],  # Slight thickness for rim top
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(rim_top)
+        
+        # Foundation indication
+        foundation_rect = Rectangle(
+            (-dimensions['hemisphere_radius'] - dimensions['rim_thickness'] - 0.3, -0.5),
+            (dimensions['hemisphere_radius'] + dimensions['rim_thickness'] + 0.3) * 2,
+            0.5,
+            linewidth=self.line_weights['construction'],
+            edgecolor=self.colors['construction'],
+            facecolor='gray',
+            alpha=0.3
+        )
+        section_elements.append(foundation_rect)
+        
+        # Sample declination circle marking (shown as arc in cross-section)
+        if 'declination_circles' in angles:
+            # Show one declination circle as an example
+            sample_decl = list(angles['declination_circles'].values())[0]
+            if isinstance(sample_decl, dict) and 'height' in sample_decl:
+                decl_height = -sample_decl['height']  # Negative for bowl depth
+                decl_radius = sample_decl['radius']
+                
+                # Arc representing declination circle
+                decl_arc_theta = np.linspace(-np.arccos(abs(decl_height)/dimensions['hemisphere_radius']),
+                                           np.arccos(abs(decl_height)/dimensions['hemisphere_radius']), 20)
+                decl_arc_x = decl_radius * np.cos(decl_arc_theta)
+                decl_arc_y = np.full_like(decl_arc_x, decl_height)
+                
+                decl_arc_line = plt.Line2D(
+                    decl_arc_x, decl_arc_y,
+                    linewidth=self.line_weights['construction'],
+                    color=self.colors['seasonal_curves'],
+                    linestyle='--',
+                    alpha=0.7
+                )
+                section_elements.append(decl_arc_line)
+        
+        section_dimensions.extend([
+            DrawingDimension(
+                (0, 0),
+                (0, -dimensions['bowl_depth']),
+                dimensions['bowl_depth'],
+                "m",
+                "BOWL DEPTH"
+            ),
+            DrawingDimension(
+                (-dimensions['hemisphere_radius'] - dimensions['rim_thickness'], -1.0),
+                (dimensions['hemisphere_radius'] + dimensions['rim_thickness'], -1.0),
+                (dimensions['hemisphere_radius'] + dimensions['rim_thickness']) * 2,
+                "m",
+                "OVERALL DIAMETER"
+            )
+        ])
+        
+        pages.append(BlueprintPage(
+            title="JAI PRAKASH YANTRA - CROSS SECTION",
+            scale="1:100",
+            elements=section_elements,
+            dimensions=section_dimensions,
+            notes=[
+                "Excavated hemispherical bowl construction",
+                f"Maximum depth: {dimensions['bowl_depth']:.2f}m",
+                "Concrete lining with smooth finish",
+                "Waterproofing membrane required",
+                "Foundation extends 0.5m below rim level",
+                "Interior surface tolerance: ±5mm"
             ]
         ))
         
@@ -997,15 +1408,17 @@ class YantraBlueprintGenerator:
         return output_path
     
     def create_digamsa_yantra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
-        """Create detailed blueprint for Digamsa Yantra"""
+        """Create detailed blueprint for Digamsa Yantra using enhanced calculations"""
         
         dimensions = specs['dimensions']
         angles = specs['angles']
+        coordinates = specs['coordinates']
         
         pages = []
         
-        # Plan view - semicircular arc from above
+        # Page 1: Plan view showing base platform and azimuth markings
         plan_elements = []
+        plan_dimensions = []
         
         # Base platform
         base_rect = Rectangle(
@@ -1020,9 +1433,10 @@ class YantraBlueprintGenerator:
         plan_elements.append(base_rect)
         
         # Central pillar (top view)
+        pillar_radius = 0.15
         pillar_circle = Circle(
             (0, 0),
-            0.2,  # Pillar radius
+            pillar_radius,
             linewidth=self.line_weights['outline'],
             edgecolor=self.colors['outline'],
             facecolor='gray',
@@ -1030,16 +1444,268 @@ class YantraBlueprintGenerator:
         )
         plan_elements.append(pillar_circle)
         
+        # Semicircular arc projection (shows where arc will be)
+        arc_radius = dimensions['arc_radius']
+        theta_semi = np.linspace(0, np.pi, 25)
+        arc_x = arc_radius * np.cos(theta_semi)
+        arc_y = arc_radius * np.sin(theta_semi)
+        
+        arc_projection = plt.Line2D(
+            arc_x, arc_y,
+            linewidth=self.line_weights['construction'],
+            color=self.colors['construction'],
+            linestyle='--',
+            alpha=0.7,
+            label='Arc Position (Vertical)'
+        )
+        plan_elements.append(arc_projection)
+        
+        # Azimuth markings around base
+        azimuth_radius = min(dimensions['base_width'], dimensions['base_length']) * 0.4
+        
+        # Major azimuth divisions (every 30°)
+        for az in range(0, 360, 30):
+            az_rad = np.radians(az)
+            inner_x = azimuth_radius * 0.8 * np.cos(az_rad)
+            inner_y = azimuth_radius * 0.8 * np.sin(az_rad)
+            outer_x = azimuth_radius * np.cos(az_rad)
+            outer_y = azimuth_radius * np.sin(az_rad)
+            
+            az_line = plt.Line2D(
+                [inner_x, outer_x],
+                [inner_y, outer_y],
+                linewidth=self.line_weights['construction'],
+                color=self.colors['construction']
+            )
+            plan_elements.append(az_line)
+            
+            # Azimuth label
+            label_x = azimuth_radius * 1.2 * np.cos(az_rad)
+            label_y = azimuth_radius * 1.2 * np.sin(az_rad)
+            plan_elements.append(plt.text(label_x, label_y, f'{az}°', 
+                                        fontsize=9, ha='center', va='center',
+                                        color=self.colors['construction']))
+        
+        # Cardinal directions
+        cardinals = [('N', 0), ('E', 90), ('S', 180), ('W', 270)]
+        for direction, angle_deg in cardinals:
+            angle_rad = np.radians(angle_deg)
+            marker_radius = azimuth_radius * 1.4
+            marker_x = marker_radius * np.cos(angle_rad)
+            marker_y = marker_radius * np.sin(angle_rad)
+            
+            plan_elements.append(plt.text(marker_x, marker_y, direction, 
+                                        fontsize=14, ha='center', va='center',
+                                        weight='bold', color='red'))
+        
+        # Arc mounting points (where arc connects to pillar)
+        mount_points = [(0, pillar_radius), (0, -pillar_radius)]
+        for mount_x, mount_y in mount_points:
+            mount_point = Circle(
+                (mount_x, mount_y),
+                0.03,
+                linewidth=self.line_weights['outline'],
+                edgecolor=self.colors['outline'],
+                facecolor='red'
+            )
+            plan_elements.append(mount_point)
+        
+        plan_dimensions.extend([
+            DrawingDimension(
+                (-dimensions['base_width']/2, -dimensions['base_length']/2 - 0.8),
+                (dimensions['base_width']/2, -dimensions['base_length']/2 - 0.8),
+                dimensions['base_width'],
+                "m",
+                "BASE WIDTH"
+            ),
+            DrawingDimension(
+                (-dimensions['base_width']/2 - 0.8, -dimensions['base_length']/2),
+                (-dimensions['base_width']/2 - 0.8, dimensions['base_length']/2),
+                dimensions['base_length'],
+                "m",
+                "BASE LENGTH"
+            ),
+            DrawingDimension(
+                (0, 0.3),
+                (arc_radius, 0.3),
+                arc_radius,
+                "m",
+                "ARC RADIUS"
+            )
+        ])
+        
         pages.append(BlueprintPage(
-            title="DIGAMSA YANTRA - PLAN VIEW",
+            title="DIGAMSA YANTRA - PLAN VIEW WITH AZIMUTH GRID",
             scale="1:50",
             elements=plan_elements,
-            dimensions=[],
+            dimensions=plan_dimensions,
             notes=[
-                f"Arc radius: {dimensions['arc_radius']:.2f}m",
-                f"Base platform: {dimensions['base_width']:.2f}m x {dimensions['base_length']:.2f}m",
-                "Azimuth markings every 10° around base",
-                "Central pillar for arc mounting"
+                f"Arc radius: {arc_radius:.2f}m",
+                f"Base platform: {dimensions['base_width']:.2f}m × {dimensions['base_length']:.2f}m",
+                f"Central pillar diameter: {pillar_radius * 2:.2f}m",
+                f"Optimized for latitude {coordinates.get('latitude', 'N/A'):.4f}°N",
+                "Azimuth markings every 30° for navigation",
+                "Vertical semicircular arc for altitude measurement",
+                "Precise north-south alignment required"
+            ]
+        ))
+        
+        # Page 2: Elevation view showing vertical semicircular arc
+        elevation_elements = []
+        elevation_dimensions = []
+        
+        # Ground level
+        ground_line = plt.Line2D(
+            [-arc_radius - 0.5, arc_radius + 0.5],
+            [0, 0],
+            linewidth=self.line_weights['construction'],
+            color=self.colors['construction'],
+            linestyle='-'
+        )
+        elevation_elements.append(ground_line)
+        
+        # Central pillar (side view)
+        pillar_height = dimensions.get('pillar_height', arc_radius * 1.2)
+        pillar_rect = Rectangle(
+            (-pillar_radius, 0),
+            pillar_radius * 2,
+            pillar_height,
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='gray',
+            alpha=0.5
+        )
+        elevation_elements.append(pillar_rect)
+        
+        # Semicircular arc (vertical)
+        theta_arc = np.linspace(0, np.pi, 50)
+        arc_center_y = pillar_height
+        arc_x_elev = arc_radius * np.cos(theta_arc)
+        arc_y_elev = arc_center_y + arc_radius * np.sin(theta_arc)
+        
+        arc_line_elev = plt.Line2D(
+            arc_x_elev, arc_y_elev,
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        elevation_elements.append(arc_line_elev)
+        
+        # Arc support connections to pillar
+        left_support = plt.Line2D(
+            [-arc_radius, -pillar_radius],
+            [arc_center_y, pillar_height],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        elevation_elements.append(left_support)
+        
+        right_support = plt.Line2D(
+            [arc_radius, pillar_radius],
+            [arc_center_y, pillar_height],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        elevation_elements.append(right_support)
+        
+        # Base platform (side view)
+        base_thickness = 0.2
+        base_platform = Rectangle(
+            (-dimensions['base_width']/2, -base_thickness),
+            dimensions['base_width'],
+            base_thickness,
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='lightgray',
+            alpha=0.5
+        )
+        elevation_elements.append(base_platform)
+        
+        # Altitude scale markings on arc
+        for alt in range(0, 91, 10):  # Every 10°
+            alt_rad = np.radians(alt)
+            mark_x = arc_radius * np.cos(alt_rad)
+            mark_y = arc_center_y + arc_radius * np.sin(alt_rad)
+            
+            # Scale mark (radial line)
+            mark_inner_x = (arc_radius - 0.1) * np.cos(alt_rad)
+            mark_inner_y = arc_center_y + (arc_radius - 0.1) * np.sin(alt_rad)
+            
+            scale_mark = plt.Line2D(
+                [mark_inner_x, mark_x],
+                [mark_inner_y, mark_y],
+                linewidth=self.line_weights['construction'],
+                color=self.colors['construction']
+            )
+            elevation_elements.append(scale_mark)
+            
+            # Scale label
+            label_x = (arc_radius + 0.3) * np.cos(alt_rad)
+            label_y = arc_center_y + (arc_radius + 0.3) * np.sin(alt_rad)
+            elevation_elements.append(plt.text(label_x, label_y, f'{alt}°', 
+                                             fontsize=8, ha='center', va='center',
+                                             color=self.colors['construction']))
+        
+        # Sighting mechanism (plumb line or sight)
+        plumb_line = plt.Line2D(
+            [0, 0],
+            [arc_center_y, arc_center_y + arc_radius],
+            linewidth=self.line_weights['hour_lines'],
+            color=self.colors['hour_lines'],
+            linestyle=':',
+            alpha=0.7,
+            label='Vertical Reference'
+        )
+        elevation_elements.append(plumb_line)
+        
+        # Foundation
+        foundation_rect = Rectangle(
+            (-dimensions['base_width']/2 - 0.2, -0.5),
+            dimensions['base_width'] + 0.4,
+            0.5,
+            linewidth=self.line_weights['construction'],
+            edgecolor=self.colors['construction'],
+            facecolor='gray',
+            alpha=0.3
+        )
+        elevation_elements.append(foundation_rect)
+        
+        elevation_dimensions.extend([
+            DrawingDimension(
+                (-pillar_radius - 0.3, 0),
+                (-pillar_radius - 0.3, pillar_height),
+                pillar_height,
+                "m",
+                "PILLAR HEIGHT"
+            ),
+            DrawingDimension(
+                (0, arc_center_y + arc_radius + 0.4),
+                (arc_radius, arc_center_y + arc_radius + 0.4),
+                arc_radius,
+                "m",
+                "ARC RADIUS"
+            ),
+            DrawingDimension(
+                (-dimensions['base_width']/2, -0.8),
+                (dimensions['base_width']/2, -0.8),
+                dimensions['base_width'],
+                "m",
+                "BASE WIDTH"
+            )
+        ])
+        
+        pages.append(BlueprintPage(
+            title="DIGAMSA YANTRA - ELEVATION VIEW",
+            scale="1:50",
+            elements=elevation_elements,
+            dimensions=elevation_dimensions,
+            notes=[
+                f"Pillar height: {pillar_height:.2f}m",
+                f"Arc thickness: {dimensions.get('arc_thickness', 0.12):.2f}m",
+                "Altitude scale: 0° to 90° in 10° increments",
+                "Vertical reference line for measurements",
+                "Material: Stone or reinforced concrete",
+                "Precision mounting for arc alignment",
+                "Foundation depth: 0.5m minimum"
             ]
         ))
         
@@ -1091,14 +1757,17 @@ class YantraBlueprintGenerator:
         return pages
     
     def create_kapala_yantra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
-        """Create detailed blueprint for Kapala Yantra"""
+        """Create detailed blueprint for Kapala Yantra using enhanced calculations"""
         
         dimensions = specs['dimensions']
+        angles = specs['angles']
+        coordinates = specs['coordinates']
         
         pages = []
         
-        # Plan view - bowl from above
+        # Page 1: Plan view with seasonal shadow curves
         plan_elements = []
+        plan_dimensions = []
         
         # Outer rim
         outer_rim = Circle(
@@ -1121,79 +1790,519 @@ class YantraBlueprintGenerator:
         )
         plan_elements.append(bowl_opening)
         
+        # Central gnomon point
+        gnomon_point = Circle(
+            (0, 0),
+            0.05,
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='red'
+        )
+        plan_elements.append(gnomon_point)
+        
+        # Add seasonal shadow curves if available
+        if 'seasonal_curves' in angles:
+            curve_colors = {'summer': 'orange', 'winter': 'blue', 'equinox': 'green'}
+            
+            for season, curve_data in angles['seasonal_curves'].items():
+                if isinstance(curve_data, dict) and 'curve_points' in curve_data:
+                    points = curve_data['curve_points']
+                    if len(points) > 1:
+                        # Create curved line for seasonal shadow path
+                        curve_x = [p[0] for p in points]
+                        curve_y = [p[1] for p in points]
+                        
+                        season_color = curve_colors.get(season, self.colors['seasonal_curves'])
+                        curve_line = plt.Line2D(
+                            curve_x, curve_y,
+                            linewidth=self.line_weights['hour_lines'],
+                            color=season_color,
+                            linestyle='-',
+                            alpha=0.7,
+                            label=f'{season.title()} path'
+                        )
+                        plan_elements.append(curve_line)
+                        
+                        # Season label
+                        mid_idx = len(points) // 2
+                        mid_x, mid_y = points[mid_idx]
+                        plan_elements.append(plt.text(mid_x + 0.2, mid_y, season.title(), 
+                                                    fontsize=9, color=season_color,
+                                                    weight='bold'))
+        
+        # Hour markings around rim
+        for hour in range(6, 19):  # 6 AM to 6 PM
+            if hour == 12:
+                continue  # Skip noon (vertical shadow)
+            
+            hour_angle = (hour - 12) * 15  # Degrees from solar noon
+            hour_angle_corrected = hour_angle * math.sin(math.radians(coordinates.get('latitude', 0)))
+            hour_rad = np.radians(hour_angle_corrected)
+            
+            # Hour marking on rim
+            rim_radius = dimensions['bowl_radius'] + dimensions['rim_width'] * 0.7
+            hour_x = rim_radius * np.sin(hour_rad)
+            hour_y = rim_radius * np.cos(hour_rad)
+            
+            hour_mark = Circle(
+                (hour_x, hour_y),
+                0.03,
+                linewidth=self.line_weights['construction'],
+                edgecolor=self.colors['hour_lines'],
+                facecolor=self.colors['hour_lines']
+            )
+            plan_elements.append(hour_mark)
+            
+            # Hour label
+            label_radius = dimensions['bowl_radius'] + dimensions['rim_width'] + 0.3
+            label_x = label_radius * np.sin(hour_rad)
+            label_y = label_radius * np.cos(hour_rad)
+            
+            plan_elements.append(plt.text(label_x, label_y, f'{hour}h', 
+                                        fontsize=8, ha='center', va='center',
+                                        color=self.colors['hour_lines']))
+        
+        # Tilt indication (for bowl orientation)
+        bowl_tilt = angles.get('bowl_tilt', 0)
+        if bowl_tilt != 0:
+            # Show tilt direction arrow
+            tilt_arrow = plt.arrow(0, dimensions['bowl_radius'] * 0.8, 
+                                 0, dimensions['bowl_radius'] * 0.3,
+                                 head_width=0.1, head_length=0.1,
+                                 fc='red', ec='red', alpha=0.7)
+            plan_elements.append(tilt_arrow)
+            
+            plan_elements.append(plt.text(0.3, dimensions['bowl_radius'] * 0.9, 
+                                        f'Tilt: {bowl_tilt:.1f}°', 
+                                        fontsize=10, color='red'))
+        
+        plan_dimensions.extend([
+            DrawingDimension(
+                (-dimensions['bowl_radius'], -dimensions['bowl_radius'] - dimensions['rim_width'] - 1.0),
+                (dimensions['bowl_radius'], -dimensions['bowl_radius'] - dimensions['rim_width'] - 1.0),
+                dimensions['bowl_radius'] * 2,
+                "m",
+                "BOWL DIAMETER"
+            ),
+            DrawingDimension(
+                (-dimensions['bowl_radius'] - dimensions['rim_width'], dimensions['bowl_radius'] + dimensions['rim_width'] + 0.5),
+                (dimensions['bowl_radius'] + dimensions['rim_width'], dimensions['bowl_radius'] + dimensions['rim_width'] + 0.5),
+                (dimensions['bowl_radius'] + dimensions['rim_width']) * 2,
+                "m",
+                "OVERALL DIAMETER"
+            )
+        ])
+        
         pages.append(BlueprintPage(
-            title="KAPALA YANTRA - PLAN VIEW",
+            title="KAPALA YANTRA - PLAN VIEW WITH SHADOW CURVES",
             scale="1:50",
             elements=plan_elements,
-            dimensions=[],
+            dimensions=plan_dimensions,
             notes=[
                 f"Bowl radius: {dimensions['bowl_radius']:.2f}m",
                 f"Bowl depth: {dimensions['bowl_depth']:.2f}m",
-                f"Rim width: {dimensions['rim_width']:.2f}m"
+                f"Rim width: {dimensions['rim_width']:.2f}m",
+                f"Bowl tilt: {bowl_tilt:.1f}° (toward equator)",
+                f"Optimized for latitude {coordinates.get('latitude', 'N/A'):.4f}°N",
+                "Seasonal shadow curves marked in bowl",
+                "Central gnomon rod: 0.3m height",
+                "Interior finish: Smooth white stone"
+            ]
+        ))
+        
+        # Page 2: Cross-section showing bowl profile and shadow geometry
+        section_elements = []
+        section_dimensions = []
+        
+        # Ground level
+        ground_line = plt.Line2D(
+            [-dimensions['bowl_radius'] - dimensions['rim_width'] - 1, 
+             dimensions['bowl_radius'] + dimensions['rim_width'] + 1],
+            [0, 0],
+            linewidth=self.line_weights['construction'],
+            color=self.colors['construction'],
+            linestyle='-'
+        )
+        section_elements.append(ground_line)
+        
+        # Bowl cross-section (parabolic/hemispherical profile)
+        x_bowl = np.linspace(-dimensions['bowl_radius'], dimensions['bowl_radius'], 50)
+        # Hemispherical profile
+        y_bowl = -np.sqrt(dimensions['bowl_radius']**2 - x_bowl**2) + dimensions['bowl_radius'] - dimensions['bowl_depth']
+        
+        bowl_line = plt.Line2D(
+            x_bowl, y_bowl,
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        section_elements.append(bowl_line)
+        
+        # Rim cross-sections
+        rim_left = Rectangle(
+            (-dimensions['bowl_radius'] - dimensions['rim_width'], 0),
+            dimensions['rim_width'], 0.15,
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='lightgray',
+            alpha=0.5
+        )
+        section_elements.append(rim_left)
+        
+        rim_right = Rectangle(
+            (dimensions['bowl_radius'], 0),
+            dimensions['rim_width'], 0.15,
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='lightgray',
+            alpha=0.5
+        )
+        section_elements.append(rim_right)
+        
+        # Central gnomon
+        gnomon_height = dimensions.get('gnomon_height', 0.3)
+        gnomon_rod = plt.Line2D(
+            [0, 0],
+            [0, gnomon_height],
+            linewidth=self.line_weights['outline'] * 2,
+            color=self.colors['outline']
+        )
+        section_elements.append(gnomon_rod)
+        
+        # Sample shadow ray
+        sample_hour_angle = 30  # 2 PM example
+        shadow_length = dimensions['bowl_radius'] * 0.8
+        shadow_x = shadow_length * np.sin(np.radians(sample_hour_angle))
+        shadow_y = y_bowl[np.argmin(np.abs(x_bowl - shadow_x))]  # Find bowl height at shadow point
+        
+        shadow_ray = plt.Line2D(
+            [0, shadow_x],
+            [gnomon_height, shadow_y],
+            linewidth=self.line_weights['hour_lines'],
+            color=self.colors['hour_lines'],
+            linestyle='--',
+            alpha=0.7,
+            label='Shadow ray (2 PM example)'
+        )
+        section_elements.append(shadow_ray)
+        
+        section_dimensions.extend([
+            DrawingDimension(
+                (0, 0),
+                (0, -dimensions['bowl_depth']),
+                dimensions['bowl_depth'],
+                "m",
+                "BOWL DEPTH"
+            ),
+            DrawingDimension(
+                (-dimensions['bowl_radius'] - dimensions['rim_width'], -0.8),
+                (dimensions['bowl_radius'] + dimensions['rim_width'], -0.8),
+                (dimensions['bowl_radius'] + dimensions['rim_width']) * 2,
+                "m",
+                "OVERALL DIAMETER"
+            ),
+            DrawingDimension(
+                (0.2, 0),
+                (0.2, gnomon_height),
+                gnomon_height,
+                "m",
+                "GNOMON HEIGHT"
+            )
+        ])
+        
+        pages.append(BlueprintPage(
+            title="KAPALA YANTRA - CROSS SECTION",
+            scale="1:50",
+            elements=section_elements,
+            dimensions=section_dimensions,
+            notes=[
+                "Hemispherical bowl profile",
+                f"Central gnomon: {gnomon_height:.2f}m height",
+                "Smooth interior surface for accurate shadows",
+                "Drainage hole at lowest point",
+                "Foundation depth: 0.3m minimum",
+                "Material: Stone or reinforced concrete"
             ]
         ))
         
         return pages
     
     def create_chakra_yantra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
-        """Create detailed blueprint for Chakra Yantra"""
+        """Create detailed blueprint for Chakra Yantra using enhanced calculations"""
         
         dimensions = specs['dimensions']
+        angles = specs['angles']
+        coordinates = specs['coordinates']
         
         pages = []
         
-        # Plan view - nested rings
+        # Page 1: Plan view with ring system and degree markings
         plan_elements = []
+        plan_dimensions = []
         
-        # Outer ring
-        outer_ring = Circle(
+        # All rings from the enhanced calculations
+        ring_names = ['outer_ring_radius', 'middle_ring_radius', 'inner_ring_radius', 'central_ring_radius']
+        ring_colors = [self.colors['outline'], self.colors['construction'], 
+                      self.colors['hour_lines'], self.colors['seasonal_curves']]
+        
+        for i, ring_name in enumerate(ring_names):
+            if ring_name in dimensions:
+                ring_radius = dimensions[ring_name]
+                ring_color = ring_colors[i % len(ring_colors)]
+                
+                ring_circle = Circle(
+                    (0, 0),
+                    ring_radius,
+                    linewidth=self.line_weights['outline'] if i == 0 else self.line_weights['construction'],
+                    edgecolor=ring_color,
+                    facecolor='none'
+                )
+                plan_elements.append(ring_circle)
+                
+                # Ring label
+                plan_elements.append(plt.text(ring_radius + 0.1, 0, 
+                                            ring_name.replace('_', ' ').title(), 
+                                            fontsize=8, ha='left', va='center',
+                                            color=ring_color))
+        
+        # Degree markings around outer ring
+        outer_radius = dimensions.get('outer_ring_radius', 2.0)
+        
+        # Major divisions (every 30°)
+        for deg in range(0, 360, 30):
+            angle_rad = np.radians(deg)
+            inner_x = (outer_radius - 0.1) * np.cos(angle_rad)
+            inner_y = (outer_radius - 0.1) * np.sin(angle_rad)
+            outer_x = (outer_radius + 0.1) * np.cos(angle_rad)
+            outer_y = (outer_radius + 0.1) * np.sin(angle_rad)
+            
+            major_tick = plt.Line2D(
+                [inner_x, outer_x],
+                [inner_y, outer_y],
+                linewidth=self.line_weights['outline'],
+                color=self.colors['outline']
+            )
+            plan_elements.append(major_tick)
+            
+            # Degree label
+            label_x = (outer_radius + 0.3) * np.cos(angle_rad)
+            label_y = (outer_radius + 0.3) * np.sin(angle_rad)
+            plan_elements.append(plt.text(label_x, label_y, f'{deg}°', 
+                                        fontsize=10, ha='center', va='center',
+                                        weight='bold'))
+        
+        # Minor divisions (every 5°)
+        for deg in range(0, 360, 5):
+            if deg % 30 != 0:  # Skip major divisions
+                angle_rad = np.radians(deg)
+                inner_x = (outer_radius - 0.05) * np.cos(angle_rad)
+                inner_y = (outer_radius - 0.05) * np.sin(angle_rad)
+                outer_x = (outer_radius + 0.05) * np.cos(angle_rad)
+                outer_y = (outer_radius + 0.05) * np.sin(angle_rad)
+                
+                minor_tick = plt.Line2D(
+                    [inner_x, outer_x],
+                    [inner_y, outer_y],
+                    linewidth=self.line_weights['construction'],
+                    color=self.colors['construction'],
+                    alpha=0.7
+                )
+                plan_elements.append(minor_tick)
+        
+        # Ring positioning markings from enhanced calculations
+        if 'ring_positions' in angles:
+            for pos_name, pos_data in angles['ring_positions'].items():
+                if isinstance(pos_data, dict) and 'angle' in pos_data:
+                    pos_angle = pos_data['angle']
+                    pos_radius = pos_data.get('radius', outer_radius * 0.8)
+                    
+                    pos_rad = np.radians(pos_angle)
+                    pos_x = pos_radius * np.cos(pos_rad)
+                    pos_y = pos_radius * np.sin(pos_rad)
+                    
+                    # Position marker
+                    pos_marker = Circle(
+                        (pos_x, pos_y),
+                        0.03,
+                        linewidth=self.line_weights['hour_lines'],
+                        edgecolor=self.colors['hour_lines'],
+                        facecolor=self.colors['hour_lines']
+                    )
+                    plan_elements.append(pos_marker)
+        
+        # Central gnomon mount
+        central_mount = Circle(
             (0, 0),
-            dimensions['outer_ring_radius'],
+            0.05,
             linewidth=self.line_weights['outline'],
             edgecolor=self.colors['outline'],
-            facecolor='none'
+            facecolor='gray'
         )
-        plan_elements.append(outer_ring)
+        plan_elements.append(central_mount)
         
-        # Inner ring
-        inner_ring = Circle(
-            (0, 0),
-            dimensions['inner_ring_radius'],
-            linewidth=self.line_weights['outline'],
-            edgecolor=self.colors['outline'],
-            facecolor='none'
-        )
-        plan_elements.append(inner_ring)
+        # Cardinal directions
+        cardinals = [('N', 0), ('E', 90), ('S', 180), ('W', 270)]
+        for direction, angle_deg in cardinals:
+            angle_rad = np.radians(angle_deg)
+            marker_radius = outer_radius + 0.6
+            marker_x = marker_radius * np.cos(angle_rad)
+            marker_y = marker_radius * np.sin(angle_rad)
+            
+            plan_elements.append(plt.text(marker_x, marker_y, direction, 
+                                        fontsize=14, ha='center', va='center',
+                                        weight='bold', color='red'))
+        
+        plan_dimensions.extend([
+            DrawingDimension(
+                (-outer_radius, -outer_radius - 0.8),
+                (outer_radius, -outer_radius - 0.8),
+                outer_radius * 2,
+                "m",
+                "OUTER RING DIAMETER"
+            ),
+            DrawingDimension(
+                (-dimensions.get('inner_ring_radius', 1.0), outer_radius + 1.0),
+                (dimensions.get('inner_ring_radius', 1.0), outer_radius + 1.0),
+                dimensions.get('inner_ring_radius', 1.0) * 2,
+                "m",
+                "INNER RING DIAMETER"
+            )
+        ])
         
         pages.append(BlueprintPage(
-            title="CHAKRA YANTRA - PLAN VIEW",
+            title="CHAKRA YANTRA - PLAN VIEW WITH RING SYSTEM",
             scale="1:50",
             elements=plan_elements,
-            dimensions=[],
+            dimensions=plan_dimensions,
             notes=[
-                f"Outer ring radius: {dimensions['outer_ring_radius']:.2f}m",
-                f"Inner ring radius: {dimensions['inner_ring_radius']:.2f}m",
-                "Degree markings every 5°"
+                f"Outer ring radius: {dimensions.get('outer_ring_radius', 'N/A'):.2f}m",
+                f"Inner rings for different solar functions",
+                f"Equatorial ring tilt: {angles.get('equatorial_ring_tilt', 'N/A'):.1f}°",
+                f"Optimized for latitude {coordinates.get('latitude', 'N/A'):.4f}°N",
+                "Degree markings: Major every 30°, minor every 5°",
+                "Ring material: Bronze or stainless steel",
+                "Precision mounting required for accuracy"
+            ]
+        ))
+        
+        # Page 2: Elevation view showing ring tilts and mounting
+        elevation_elements = []
+        elevation_dimensions = []
+        
+        # Ground level
+        ground_line = plt.Line2D(
+            [-outer_radius - 1, outer_radius + 1],
+            [0, 0],
+            linewidth=self.line_weights['construction'],
+            color=self.colors['construction'],
+            linestyle='-'
+        )
+        elevation_elements.append(ground_line)
+        
+        # Central mounting post
+        post_height = dimensions.get('mounting_post_height', 1.5)
+        post_line = plt.Line2D(
+            [0, 0],
+            [0, post_height],
+            linewidth=self.line_weights['outline'] * 2,
+            color=self.colors['outline']
+        )
+        elevation_elements.append(post_line)
+        
+        # Ring tilts (side view)
+        equatorial_tilt = angles.get('equatorial_ring_tilt', coordinates.get('latitude', 0))
+        tilt_rad = np.radians(equatorial_tilt)
+        
+        # Outer ring (tilted for equatorial alignment)
+        ring_width = outer_radius
+        ring_x_left = -ring_width * np.cos(tilt_rad)
+        ring_y_left = post_height + ring_width * np.sin(tilt_rad)
+        ring_x_right = ring_width * np.cos(tilt_rad)
+        ring_y_right = post_height - ring_width * np.sin(tilt_rad)
+        
+        tilted_ring = plt.Line2D(
+            [ring_x_left, ring_x_right],
+            [ring_y_left, ring_y_right],
+            linewidth=self.line_weights['outline'] * 2,
+            color=self.colors['outline'],
+            label='Equatorial Ring'
+        )
+        elevation_elements.append(tilted_ring)
+        
+        # Inner rings (horizontal)
+        inner_radius = dimensions.get('inner_ring_radius', outer_radius * 0.6)
+        horizontal_ring = plt.Line2D(
+            [-inner_radius, inner_radius],
+            [post_height, post_height],
+            linewidth=self.line_weights['construction'],
+            color=self.colors['construction'],
+            label='Horizontal Rings'
+        )
+        elevation_elements.append(horizontal_ring)
+        
+        # Foundation
+        foundation_rect = Rectangle(
+            (-outer_radius * 0.3, -0.3),
+            outer_radius * 0.6,
+            0.3,
+            linewidth=self.line_weights['construction'],
+            edgecolor=self.colors['construction'],
+            facecolor='gray',
+            alpha=0.3
+        )
+        elevation_elements.append(foundation_rect)
+        
+        elevation_dimensions.extend([
+            DrawingDimension(
+                (-0.3, 0),
+                (-0.3, post_height),
+                post_height,
+                "m",
+                "MOUNTING HEIGHT"
+            ),
+            DrawingDimension(
+                (ring_x_left, ring_y_left + 0.2),
+                (ring_x_right, ring_y_right + 0.2),
+                np.sqrt((ring_x_right - ring_x_left)**2 + (ring_y_right - ring_y_left)**2),
+                "m",
+                "RING DIAMETER"
+            )
+        ])
+        
+        pages.append(BlueprintPage(
+            title="CHAKRA YANTRA - ELEVATION VIEW",
+            scale="1:50",
+            elements=elevation_elements,
+            dimensions=elevation_dimensions,
+            notes=[
+                f"Equatorial ring tilt: {equatorial_tilt:.1f}° (= latitude)",
+                f"Mounting post height: {post_height:.2f}m",
+                "Horizontal rings for different measurements",
+                "Precision bearings for ring rotation",
+                "Weather-resistant materials required",
+                "Annual calibration recommended"
             ]
         ))
         
         return pages
     
     def create_unnatamsa_yantra_blueprint(self, specs: Dict) -> List[BlueprintPage]:
-        """Create detailed blueprint for Unnatamsa Yantra"""
+        """Create detailed blueprint for Unnatamsa Yantra using enhanced calculations"""
         
         dimensions = specs['dimensions']
+        angles = specs['angles']
+        coordinates = specs['coordinates']
         
         pages = []
         
-        # Plan view - quadrant from above
+        # Page 1: Plan view showing quadrant layout and base platform
         plan_elements = []
+        plan_dimensions = []
         
         # Base platform
         base_rect = Rectangle(
-            (0, 0),
-            dimensions['base_length'],
+            (-dimensions['base_width']/2, -dimensions['base_length']/2),
             dimensions['base_width'],
+            dimensions['base_length'],
             linewidth=self.line_weights['outline'],
             edgecolor=self.colors['outline'],
             facecolor='lightgray',
@@ -1201,15 +2310,265 @@ class YantraBlueprintGenerator:
         )
         plan_elements.append(base_rect)
         
+        # Quadrant arc (top view projection)
+        arc_radius = dimensions.get('arc_radius', dimensions.get('quadrant_radius', 3.0))
+        
+        # Quarter circle outline
+        theta_quad = np.linspace(0, np.pi/2, 25)
+        quad_x = arc_radius * np.cos(theta_quad)
+        quad_y = arc_radius * np.sin(theta_quad)
+        
+        quadrant_line = plt.Line2D(
+            quad_x, quad_y,
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline'],
+            label='Quadrant Arc'
+        )
+        plan_elements.append(quadrant_line)
+        
+        # Vertical support post position
+        post_circle = Circle(
+            (0, 0),
+            0.1,
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='gray'
+        )
+        plan_elements.append(post_circle)
+        
+        # Altitude scale markings (projected)
+        if 'altitude_markings' in angles:
+            for alt_name, alt_data in angles['altitude_markings'].items():
+                if isinstance(alt_data, dict) and 'position' in alt_data:
+                    alt_angle = alt_data.get('angle', 0)
+                    
+                    # Position along the quadrant arc
+                    pos_rad = np.radians(90 - alt_angle)  # Convert altitude to position angle
+                    mark_x = arc_radius * np.cos(pos_rad)
+                    mark_y = arc_radius * np.sin(pos_rad)
+                    
+                    # Altitude marking
+                    alt_mark = Circle(
+                        (mark_x, mark_y),
+                        0.02,
+                        linewidth=self.line_weights['construction'],
+                        edgecolor=self.colors['construction'],
+                        facecolor=self.colors['construction']
+                    )
+                    plan_elements.append(alt_mark)
+                    
+                    # Altitude label
+                    if alt_angle % 10 == 0:  # Label every 10°
+                        plan_elements.append(plt.text(mark_x + 0.1, mark_y + 0.1, f'{alt_angle:.0f}°', 
+                                                    fontsize=8, color=self.colors['construction']))
+        
+        # Sighting arm indication (dashed line to arc)
+        sighting_length = dimensions.get('sighting_arm_length', arc_radius * 0.95)
+        sighting_line = plt.Line2D(
+            [0, sighting_length],
+            [0, 0],
+            linewidth=self.line_weights['construction'],
+            color=self.colors['hour_lines'],
+            linestyle='--',
+            alpha=0.7,
+            label='Sighting Arm (movable)'
+        )
+        plan_elements.append(sighting_line)
+        
+        # North direction indicator
+        north_arrow = plt.arrow(0, dimensions['base_length']/2 - 0.5, 
+                              0, 0.3,
+                              head_width=0.1, head_length=0.1,
+                              fc='red', ec='red')
+        plan_elements.append(north_arrow)
+        plan_elements.append(plt.text(0.2, dimensions['base_length']/2 - 0.2, 'N', 
+                                    fontsize=12, color='red', weight='bold'))
+        
+        plan_dimensions.extend([
+            DrawingDimension(
+                (-dimensions['base_width']/2, -dimensions['base_length']/2 - 0.8),
+                (dimensions['base_width']/2, -dimensions['base_length']/2 - 0.8),
+                dimensions['base_width'],
+                "m",
+                "BASE WIDTH"
+            ),
+            DrawingDimension(
+                (-dimensions['base_width']/2 - 0.8, -dimensions['base_length']/2),
+                (-dimensions['base_width']/2 - 0.8, dimensions['base_length']/2),
+                dimensions['base_length'],
+                "m",
+                "BASE LENGTH"
+            ),
+            DrawingDimension(
+                (0, 0.2),
+                (arc_radius, 0.2),
+                arc_radius,
+                "m",
+                "ARC RADIUS"
+            )
+        ])
+        
         pages.append(BlueprintPage(
             title="UNNATAMSA YANTRA - PLAN VIEW",
             scale="1:50",
             elements=plan_elements,
-            dimensions=[],
+            dimensions=plan_dimensions,
             notes=[
-                f"Quadrant radius: {dimensions['quadrant_radius']:.2f}m",
-                f"Base: {dimensions['base_length']:.2f}m x {dimensions['base_width']:.2f}m",
-                "Altitude scale marked every 5°"
+                f"Arc radius: {arc_radius:.2f}m",
+                f"Base platform: {dimensions['base_width']:.2f}m × {dimensions['base_length']:.2f}m",
+                f"Sighting arm length: {sighting_length:.2f}m",
+                f"Optimized for latitude {coordinates.get('latitude', 'N/A'):.4f}°N",
+                "Altitude markings every 5° (0° to 90°)",
+                "Movable sighting arm with degree scale",
+                "Align base platform north-south"
+            ]
+        ))
+        
+        # Page 2: Elevation view showing vertical quadrant structure
+        elevation_elements = []
+        elevation_dimensions = []
+        
+        # Ground level
+        ground_line = plt.Line2D(
+            [-dimensions['base_width']/2 - 0.5, dimensions['base_width']/2 + 0.5],
+            [0, 0],
+            linewidth=self.line_weights['construction'],
+            color=self.colors['construction'],
+            linestyle='-'
+        )
+        elevation_elements.append(ground_line)
+        
+        # Vertical support post
+        post_height = dimensions.get('vertical_post_height', dimensions.get('arc_radius', 3.0))
+        post_line = plt.Line2D(
+            [0, 0],
+            [0, post_height],
+            linewidth=self.line_weights['outline'] * 2,
+            color=self.colors['outline']
+        )
+        elevation_elements.append(post_line)
+        
+        # Quarter circle arc (side view)
+        theta_elev = np.linspace(0, np.pi/2, 50)
+        arc_x_elev = arc_radius * np.cos(theta_elev)
+        arc_y_elev = post_height - arc_radius + arc_radius * np.sin(theta_elev)
+        
+        arc_line_elev = plt.Line2D(
+            arc_x_elev, arc_y_elev,
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        elevation_elements.append(arc_line_elev)
+        
+        # Arc support structure
+        arc_support_line = plt.Line2D(
+            [0, arc_radius],
+            [post_height - arc_radius, post_height - arc_radius],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        elevation_elements.append(arc_support_line)
+        
+        arc_support_vertical = plt.Line2D(
+            [arc_radius, arc_radius],
+            [post_height - arc_radius, post_height],
+            linewidth=self.line_weights['outline'],
+            color=self.colors['outline']
+        )
+        elevation_elements.append(arc_support_vertical)
+        
+        # Base platform (side view)
+        base_thickness = 0.2
+        base_platform = Rectangle(
+            (-dimensions['base_width']/2, -base_thickness),
+            dimensions['base_width'],
+            base_thickness,
+            linewidth=self.line_weights['outline'],
+            edgecolor=self.colors['outline'],
+            facecolor='lightgray',
+            alpha=0.5
+        )
+        elevation_elements.append(base_platform)
+        
+        # Altitude scale markings on arc
+        for alt in range(0, 91, 10):  # Every 10°
+            alt_rad = np.radians(alt)
+            mark_x = arc_radius * np.cos(alt_rad)
+            mark_y = post_height - arc_radius + arc_radius * np.sin(alt_rad)
+            
+            # Scale mark
+            mark_inner_x = (arc_radius - 0.05) * np.cos(alt_rad)
+            mark_inner_y = post_height - arc_radius + (arc_radius - 0.05) * np.sin(alt_rad)
+            
+            scale_mark = plt.Line2D(
+                [mark_inner_x, mark_x],
+                [mark_inner_y, mark_y],
+                linewidth=self.line_weights['construction'],
+                color=self.colors['construction']
+            )
+            elevation_elements.append(scale_mark)
+            
+            # Scale label
+            label_x = (arc_radius + 0.2) * np.cos(alt_rad)
+            label_y = post_height - arc_radius + (arc_radius + 0.2) * np.sin(alt_rad)
+            elevation_elements.append(plt.text(label_x, label_y, f'{alt}°', 
+                                             fontsize=8, ha='center', va='center',
+                                             color=self.colors['construction']))
+        
+        # Sample sighting line (45° example)
+        sample_alt = 45
+        sample_rad = np.radians(sample_alt)
+        sight_end_x = arc_radius * np.cos(sample_rad)
+        sight_end_y = post_height - arc_radius + arc_radius * np.sin(sample_rad)
+        
+        sample_sight = plt.Line2D(
+            [0, sight_end_x],
+            [post_height - arc_radius, sight_end_y],
+            linewidth=self.line_weights['hour_lines'],
+            color=self.colors['hour_lines'],
+            linestyle='--',
+            alpha=0.7,
+            label='Sample sighting (45°)'
+        )
+        elevation_elements.append(sample_sight)
+        
+        elevation_dimensions.extend([
+            DrawingDimension(
+                (-0.4, 0),
+                (-0.4, post_height),
+                post_height,
+                "m",
+                "POST HEIGHT"
+            ),
+            DrawingDimension(
+                (0, post_height + 0.3),
+                (arc_radius, post_height + 0.3),
+                arc_radius,
+                "m",
+                "ARC RADIUS"
+            ),
+            DrawingDimension(
+                (-dimensions['base_width']/2, -0.6),
+                (dimensions['base_width']/2, -0.6),
+                dimensions['base_width'],
+                "m",
+                "BASE WIDTH"
+            )
+        ])
+        
+        pages.append(BlueprintPage(
+            title="UNNATAMSA YANTRA - ELEVATION VIEW",
+            scale="1:50",
+            elements=elevation_elements,
+            dimensions=elevation_dimensions,
+            notes=[
+                f"Vertical post height: {post_height:.2f}m",
+                f"Arc material: Stone or metal",
+                f"Base platform thickness: {base_thickness:.2f}m",
+                "Altitude scale: 0° to 90° in 5° increments",
+                "Precise alignment required: ±0.1°",
+                "Foundation bolts: M12 stainless steel",
+                "Weather protection for moving parts"
             ]
         ))
         
@@ -1236,7 +2595,7 @@ class YantraBlueprintGenerator:
             pages = self.create_kapala_yantra_blueprint(yantra_specs)
         elif 'chakra' in yantra_name and 'ring' in yantra_name:
             pages = self.create_chakra_yantra_blueprint(yantra_specs)
-        elif 'unnatamsa' in yantra_name:
+        elif 'unnatamsa' in yantra_name or 'solar_altitude' in yantra_name:
             pages = self.create_unnatamsa_yantra_blueprint(yantra_specs)
         else:
             raise ValueError(f"Unknown yantra type: {yantra_name}")
@@ -1247,7 +2606,7 @@ class YantraBlueprintGenerator:
             lat, lon = coords.latitude, coords.longitude
         else:
             lat, lon = coords['latitude'], coords['longitude']
-        filename = f"{yantra_name}_{lat:.2f}_{lon:.2f}"
+        filename = f"{yantra_name}_{lat:.2f}_{lon:.2f}".replace(' ', '_')
         
         if format.lower() == 'pdf':
             output_path = Path(output_dir) / f"{filename}_blueprint.pdf"

@@ -617,130 +617,1060 @@ const YantraViewer2D = ({ yantraType, specs, astronomicalData }) => {
   const drawDigamsaYantra = (ctx, centerX, centerY, scale) => {
     if (!specs?.dimensions) return;
     
+    // ENHANCED DIGAMSA YANTRA - Vertical quadrant for azimuth measurement
     const arcRadius = (specs.dimensions.arc_radius || 5) * scale;
+    const pillarHeight = (specs.dimensions.pillar_height || 4) * scale;
+    const baseWidth = (specs.dimensions.base_width || 3) * scale;
     
-    // Vertical semicircle
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, arcRadius, Math.PI, 0);
-    ctx.stroke();
+    // Location-specific data
+    const magneticDeclination = specs.angles?.magnetic_declination || 0;
+    const trueNorthCorrection = specs.angles?.true_north_correction || 0;
+    const scaleDisplayFactor = specs.dimensions?.latitude_scale_factor || 1.0;
     
-    // Base line
-    ctx.beginPath();
-    ctx.moveTo(centerX - arcRadius, centerY);
-    ctx.lineTo(centerX + arcRadius, centerY);
-    ctx.stroke();
-    
-    // Degree markings
-    for (let i = 0; i <= 180; i += 30) {
-      const angle = (i * Math.PI) / 180;
-      const x1 = centerX + Math.cos(angle) * (arcRadius - 10);
-      const y1 = centerY - Math.sin(angle) * (arcRadius - 10);
-      const x2 = centerX + Math.cos(angle) * arcRadius;
-      const y2 = centerY - Math.sin(angle) * arcRadius;
+    if (viewMode === 'top') {
+      // TOP VIEW - Base platform and alignment
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
       
+      // Base platform (rectangular)
+      const platformLength = baseWidth * 2;
+      ctx.strokeRect(centerX - platformLength/2, centerY - baseWidth/2, platformLength, baseWidth);
+      ctx.fillStyle = 'rgba(245, 243, 237, 0.3)';
+      ctx.fillRect(centerX - platformLength/2, centerY - baseWidth/2, platformLength, baseWidth);
+      
+      // Central pillar base
+      ctx.strokeStyle = '#A0522D';
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
+      ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
       ctx.stroke();
+      ctx.fillStyle = '#D2B48C';
+      ctx.fill();
+      
+      // True North alignment indicator
+      ctx.strokeStyle = '#FF0000';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      const northAngle = (trueNorthCorrection * Math.PI) / 180;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(
+        centerX + Math.sin(northAngle) * arcRadius * 0.8,
+        centerY - Math.cos(northAngle) * arcRadius * 0.8
+      );
+      ctx.stroke();
+      ctx.setLineDash([]);
       
       if (showDimensions) {
-        ctx.fillStyle = '#654321';
-        ctx.fillText(`${i}°`, x1 - 10, y1 - 5);
+        ctx.fillStyle = '#FF0000';
+        ctx.font = 'bold 10px Arial';
+        ctx.fillText('True N', centerX + 15, centerY - arcRadius * 0.6);
       }
+      
+    } else if (viewMode === 'side') {
+      // ENHANCED SIDE VIEW - Vertical semicircle
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Base platform
+      ctx.fillStyle = 'rgba(245, 243, 237, 0.3)';
+      ctx.fillRect(centerX - baseWidth, centerY + 20, baseWidth * 2, 15);
+      ctx.strokeRect(centerX - baseWidth, centerY + 20, baseWidth * 2, 15);
+      
+      // Vertical pillar
+      ctx.strokeStyle = '#A0522D';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY + 20);
+      ctx.lineTo(centerX, centerY + 20 - pillarHeight);
+      ctx.stroke();
+      
+      // Vertical semicircle
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, arcRadius, Math.PI, 0);
+      ctx.stroke();
+      
+      // Base diameter
+      ctx.beginPath();
+      ctx.moveTo(centerX - arcRadius, centerY);
+      ctx.lineTo(centerX + arcRadius, centerY);
+      ctx.stroke();
+      
+      // ENHANCED AZIMUTH MARKINGS
+      ctx.strokeStyle = '#CD853F';
+      ctx.lineWidth = 1.5;
+      
+      for (let azimuth = 0; azimuth <= 180; azimuth += 15) {
+        const angle = (azimuth * Math.PI) / 180;
+        const isMajor = azimuth % 30 === 0;
+        const markLength = isMajor ? 15 : 8;
+        
+        const x1 = centerX + Math.cos(angle) * (arcRadius - markLength);
+        const y1 = centerY - Math.sin(angle) * (arcRadius - markLength);
+        const x2 = centerX + Math.cos(angle) * arcRadius;
+        const y2 = centerY - Math.sin(angle) * arcRadius;
+        
+        ctx.lineWidth = isMajor ? 2 : 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        if (isMajor && showDimensions) {
+          ctx.fillStyle = '#654321';
+          ctx.font = 'bold 9px Arial';
+          ctx.fillText(`${azimuth}°`, x1 - 10, y1 - 5);
+        }
+      }
+      
+      // Plumb line
+      ctx.strokeStyle = '#4169E1';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY - arcRadius + 10);
+      ctx.lineTo(centerX, centerY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    
+    // Location-specific information
+    if (showDimensions) {
+      const infoY = centerY - arcRadius - 50;
+      
+      ctx.fillStyle = '#2F4F4F';
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText(`Arc Radius: ${(arcRadius/scale).toFixed(1)}m`, centerX - 90, infoY - 25);
+      ctx.fillText(`Pillar Height: ${(pillarHeight/scale).toFixed(1)}m`, centerX - 90, infoY - 10);
+      ctx.fillText(`Magnetic Decl: ${magneticDeclination.toFixed(1)}°`, centerX - 90, infoY + 5);
+      ctx.fillText(`Scale Factor: ${scaleDisplayFactor.toFixed(3)}`, centerX - 90, infoY + 20);
+      
+      // Show this is location-specific
+      ctx.fillStyle = '#8B0000';
+      ctx.font = 'italic 10px Arial';
+      ctx.fillText('↑ Azimuth measurement with magnetic correction', centerX - 90, infoY + 35);
     }
   };
 
   const drawDhruvaProthaChakra = (ctx, centerX, centerY, scale) => {
     if (!specs?.dimensions) return;
     
-    const radius = (specs.dimensions.disk_radius || 4) * scale;
+    // ENHANCED DHRUVA-PROTHA-CHAKRA - Polar alignment and circumpolar tracking
+    const diskRadius = (specs.dimensions.disk_radius || 4) * scale;
+    const poleHeight = (specs.dimensions.pole_height || 2) * scale;
+    const baseRadius = (specs.dimensions.base_radius || 6) * scale;
     
-    // Main circle
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-    ctx.stroke();
+    // Location-specific calculations
+    const celestialPoleAlt = specs.angles?.celestial_pole_altitude || 28.7;
+    const polarisDistance = specs.angles?.polaris_distance_from_pole || 0.7;
+    const scaleDisplayFactor = specs.dimensions?.latitude_scale_factor || 1.0;
     
-    // Center point
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 3, 0, 2 * Math.PI);
-    ctx.fill();
-    
-    // Concentric circles for measurements
-    for (let r = radius/3; r < radius; r += radius/3) {
-      ctx.strokeStyle = '#CD853F';
-      ctx.lineWidth = 1;
+    if (viewMode === 'top') {
+      // TOP VIEW - Circular base with polar disk
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Outer base circle
       ctx.beginPath();
-      ctx.arc(centerX, centerY, r, 0, 2 * Math.PI);
+      ctx.arc(centerX, centerY, baseRadius, 0, 2 * Math.PI);
       ctx.stroke();
+      ctx.fillStyle = 'rgba(245, 243, 237, 0.3)';
+      ctx.fill();
+      
+      // Central polar disk
+      ctx.strokeStyle = '#A0522D';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, diskRadius, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(210, 180, 140, 0.7)';
+      ctx.fill();
+      
+      // ENHANCED HOUR MARKINGS (24-hour system)
+      ctx.strokeStyle = '#DC143C';
+      ctx.lineWidth = 1.5;
+      
+      for (let hour = 0; hour < 24; hour++) {
+        const angle = (hour * 15 * Math.PI) / 180; // 15° per hour
+        const isMainHour = hour % 3 === 0;
+        const lineLength = isMainHour ? 20 : 12;
+        
+        const x1 = centerX + Math.cos(angle - Math.PI/2) * (diskRadius - lineLength);
+        const y1 = centerY + Math.sin(angle - Math.PI/2) * (diskRadius - lineLength);
+        const x2 = centerX + Math.cos(angle - Math.PI/2) * diskRadius;
+        const y2 = centerY + Math.sin(angle - Math.PI/2) * diskRadius;
+        
+        ctx.lineWidth = isMainHour ? 2 : 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        // Hour labels
+        if (isMainHour && showDimensions) {
+          const labelRadius = diskRadius + 12;
+          const labelX = centerX + Math.cos(angle - Math.PI/2) * labelRadius;
+          const labelY = centerY + Math.sin(angle - Math.PI/2) * labelRadius;
+          
+          ctx.fillStyle = '#DC143C';
+          ctx.font = 'bold 9px Arial';
+          ctx.fillText(`${hour}h`, labelX - 6, labelY + 3);
+        }
+      }
+      
+      // CIRCUMPOLAR STAR TRACKS
+      ctx.strokeStyle = '#228B22';
+      ctx.lineWidth = 1;
+      
+      const declinations = [75, 80, 85, 89];
+      declinations.forEach((decl, index) => {
+        const trackRadius = diskRadius * 0.3 + (diskRadius * 0.6) * (decl - 70) / 20;
+        if (trackRadius > diskRadius * 0.2 && trackRadius < diskRadius * 0.9) {
+          ctx.setLineDash(index % 2 === 0 ? [] : [3, 3]);
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, trackRadius, 0, 2 * Math.PI);
+          ctx.stroke();
+          
+          if (showDimensions && index % 2 === 0) {
+            ctx.fillStyle = '#228B22';
+            ctx.font = '8px Arial';
+            ctx.fillText(`${decl}°`, centerX + trackRadius - 8, centerY - 3);
+          }
+        }
+      });
+      ctx.setLineDash([]);
+      
+      // Celestial pole center
+      ctx.fillStyle = '#FF6347';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#8B0000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#8B0000';
+        ctx.font = 'bold 9px Arial';
+        ctx.fillText('NCP', centerX - 10, centerY - 10);
+      }
+      
+      // Polaris position (offset from pole)
+      const polarisX = centerX + Math.cos(0) * polarisDistance * scale * 3;
+      const polarisY = centerY + Math.sin(0) * polarisDistance * scale * 3;
+      
+      ctx.fillStyle = '#FFD700';
+      ctx.beginPath();
+      ctx.arc(polarisX, polarisY, 3, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#FF8C00';
+        ctx.font = '8px Arial';
+        ctx.fillText('Polaris', polarisX + 6, polarisY);
+      }
+      
+      // Cardinal directions
+      const cardinals = [
+        { dir: 'N', angle: -Math.PI/2, color: '#FF0000' },
+        { dir: 'E', angle: 0, color: '#228B22' },
+        { dir: 'S', angle: Math.PI/2, color: '#FF0000' },
+        { dir: 'W', angle: Math.PI, color: '#228B22' }
+      ];
+      
+      cardinals.forEach(({ dir, angle, color }) => {
+        const markerRadius = baseRadius + 15;
+        const x = centerX + Math.cos(angle) * markerRadius;
+        const y = centerY + Math.sin(angle) * markerRadius;
+        
+        ctx.fillStyle = color;
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(dir, x - 5, y + 5);
+      });
+      
+    } else if (viewMode === 'side') {
+      // ENHANCED SIDE VIEW - Shows latitude tilt
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Base platform
+      ctx.fillStyle = 'rgba(245, 243, 237, 0.3)';
+      ctx.fillRect(centerX - baseRadius, centerY + 30, baseRadius * 2, 20);
+      ctx.strokeRect(centerX - baseRadius, centerY + 30, baseRadius * 2, 20);
+      
+      // Support pole
+      ctx.strokeStyle = '#A0522D';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY + 30);
+      ctx.lineTo(centerX, centerY + 30 - poleHeight);
+      ctx.stroke();
+      
+      // Tilted polar disk (shows latitude tilt)
+      const tiltAngle = (celestialPoleAlt * Math.PI) / 180;
+      
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 2;
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.scale(1, Math.sin(tiltAngle));
+      ctx.beginPath();
+      ctx.arc(0, 0, diskRadius, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.restore();
+      
+      // Polar axis indication
+      ctx.strokeStyle = '#4169E1';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + diskRadius * Math.cos(tiltAngle), centerY - diskRadius * Math.sin(tiltAngle));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#8B4513';
+        ctx.font = '10px Arial';
+        ctx.fillText(`Tilt: ${celestialPoleAlt.toFixed(1)}° (= Latitude)`, centerX + diskRadius + 10, centerY - 15);
+        ctx.fillText(`Pole Height: ${(poleHeight/scale).toFixed(1)}m`, centerX + diskRadius + 10, centerY);
+      }
     }
     
+    // Location-specific information
+    if (showDimensions) {
+      const infoY = centerY - baseRadius - 60;
+      
+      ctx.fillStyle = '#2F4F4F';
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText(`Disk Radius: ${(diskRadius/scale).toFixed(1)}m`, centerX - 100, infoY - 30);
+      ctx.fillText(`Base Radius: ${(baseRadius/scale).toFixed(1)}m`, centerX - 100, infoY - 15);
+      ctx.fillText(`Pole Altitude: ${celestialPoleAlt.toFixed(1)}°`, centerX - 100, infoY);
+      ctx.fillText(`Polaris Offset: ${polarisDistance.toFixed(1)}°`, centerX - 100, infoY + 15);
+      ctx.fillText(`Scale Factor: ${scaleDisplayFactor.toFixed(3)}`, centerX - 100, infoY + 30);
+      
+      // Show this is location-specific
+      ctx.fillStyle = '#8B0000';
+      ctx.font = 'italic 10px Arial';
+      ctx.fillText('↑ Polar tracking with latitude-dependent tilt', centerX - 100, infoY + 45);
+    }
+    
+    // Reset styles
     ctx.strokeStyle = '#8B4513';
     ctx.lineWidth = 2;
   };
 
   const drawKapalaYantra = (ctx, centerX, centerY, scale) => {
-    drawJaiPrakashYantra(ctx, centerX, centerY, scale * 0.8); // Similar to Jai Prakash but smaller
+    if (!specs?.dimensions) return;
+    
+    // ENHANCED KAPALA YANTRA - Bowl sundial with precise calculations
+    const bowlRadius = (specs.dimensions.bowl_radius || 6) * scale;
+    const bowlDepth = (specs.dimensions.bowl_depth || 4) * scale;
+    const rimThickness = (specs.dimensions.rim_thickness || 0.3) * scale;
+    const gnomonHeight = (specs.dimensions.gnomon_height || 3) * scale;
+    
+    // Location-specific data
+    const shadowCurveRadius = specs.dimensions?.shadow_curve_radius || bowlRadius * 0.8;
+    const seasonalRange = specs.angles?.seasonal_range || 47;
+    const celestialPoleAlt = specs.angles?.celestial_pole_altitude || 28.7;
+    const scaleDisplayFactor = specs.dimensions?.latitude_scale_factor || 1.0;
+    
+    if (viewMode === 'top') {
+      // TOP VIEW - Circular bowl with hour lines
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Outer rim
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, bowlRadius, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      // Inner bowl wall
+      ctx.strokeStyle = '#A0522D';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, bowlRadius - rimThickness, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      // ENHANCED HOUR LINES (concave surface projection)
+      ctx.strokeStyle = '#DC143C';
+      ctx.lineWidth = 1.5;
+      
+      // Extract hour angles from API data or use calculated angles
+      for (let hour = 6; hour <= 18; hour++) {
+        const hourKey = `hour_angle_hour_${hour.toString().padStart(2, '0')}`;
+        let hourAngle;
+        
+        if (specs.angles && specs.angles[hourKey] !== undefined) {
+          hourAngle = specs.angles[hourKey];
+        } else {
+          // Fallback calculation for bowl sundial
+          hourAngle = (hour - 12) * 15; // Basic hour angle
+        }
+        
+        const angle = (hourAngle * Math.PI) / 180;
+        
+        // Project hour line on bowl surface
+        const lineRadius = (bowlRadius - rimThickness) * 0.9;
+        const endX = centerX + Math.cos(angle - Math.PI/2) * lineRadius;
+        const endY = centerY + Math.sin(angle - Math.PI/2) * lineRadius;
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        
+        // Hour marking dot
+        ctx.fillStyle = '#DC143C';
+        ctx.beginPath();
+        ctx.arc(endX, endY, 3, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        if (showDimensions && hour % 3 === 0) {
+          ctx.fillStyle = '#8B4513';
+          ctx.font = 'bold 10px Arial';
+          ctx.fillText(`${hour}h`, endX + 5, endY);
+        }
+      }
+      
+      // ENHANCED ALTITUDE CIRCLES (bowl depth indicators)
+      ctx.strokeStyle = '#228B22';
+      ctx.lineWidth = 1;
+      
+      for (let alt = 15; alt <= 75; alt += 15) {
+        // Calculate radius based on bowl geometry and altitude
+        const altRadiusFactor = Math.sin((alt * Math.PI) / 180);
+        const altRadius = (bowlRadius - rimThickness) * altRadiusFactor;
+        
+        if (altRadius > 10) {
+          ctx.setLineDash(alt % 30 === 0 ? [] : [3, 3]);
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, altRadius, 0, 2 * Math.PI);
+          ctx.stroke();
+          
+          if (showDimensions && alt % 30 === 0) {
+            ctx.fillStyle = '#228B22';
+            ctx.font = '9px Arial';
+            ctx.fillText(`${alt}°`, centerX + altRadius - 15, centerY - 5);
+          }
+        }
+      }
+      ctx.setLineDash([]);
+      
+      // SEASONAL SHADOW CURVES
+      ctx.strokeStyle = '#FF6347';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      
+      // Summer and winter solstice curves
+      for (let season of ['summer', 'winter']) {
+        const seasonRadius = shadowCurveRadius * (season === 'summer' ? 0.6 : 0.9);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, seasonRadius, 0, 2 * Math.PI);
+        ctx.stroke();
+        
+        if (showDimensions) {
+          ctx.fillStyle = '#FF6347';
+          ctx.font = '8px Arial';
+          ctx.fillText(season.charAt(0).toUpperCase() + season.slice(1), 
+                      centerX + seasonRadius - 20, centerY - 5);
+        }
+      }
+      ctx.setLineDash([]);
+      
+      // CENTRAL GNOMON POST
+      ctx.fillStyle = '#8B4513';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 4, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Gnomon shadow tip indicator
+      ctx.strokeStyle = '#4169E1';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+    } else if (viewMode === 'side') {
+      // ENHANCED SIDE VIEW - Bowl cross-section
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Bowl profile (hemisphere)
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, bowlRadius, 0, Math.PI);
+      ctx.stroke();
+      
+      // Rim thickness
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, bowlRadius - rimThickness, 0, Math.PI);
+      ctx.stroke();
+      
+      // Base/ground level
+      ctx.beginPath();
+      ctx.moveTo(centerX - bowlRadius - 20, centerY);
+      ctx.lineTo(centerX + bowlRadius + 20, centerY);
+      ctx.stroke();
+      
+      // Central gnomon (vertical)
+      ctx.strokeStyle = '#4169E1';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX, centerY - gnomonHeight);
+      ctx.stroke();
+      
+      // Gnomon tip
+      ctx.fillStyle = '#4169E1';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY - gnomonHeight, 3, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Sample shadow rays for different seasons
+      ctx.strokeStyle = '#FF6347';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      
+      const shadowAngles = [30, 45, 60]; // degrees from horizontal
+      shadowAngles.forEach((shadowAngle, index) => {
+        const angle = (shadowAngle * Math.PI) / 180;
+        const shadowLength = bowlRadius * 0.8;
+        const shadowEndX = centerX + Math.cos(angle) * shadowLength;
+        const shadowEndY = centerY - Math.sin(angle) * shadowLength;
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY - gnomonHeight);
+        ctx.lineTo(shadowEndX, shadowEndY);
+        ctx.stroke();
+        
+        if (showDimensions && index === 1) {
+          ctx.fillStyle = '#FF6347';
+          ctx.font = '8px Arial';
+          ctx.fillText(`${shadowAngle}°`, shadowEndX + 5, shadowEndY);
+        }
+      });
+      ctx.setLineDash([]);
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#8B4513';
+        ctx.font = '10px Arial';
+        ctx.fillText(`Bowl R: ${(bowlRadius/scale).toFixed(1)}m`, centerX + bowlRadius + 10, centerY - 30);
+        ctx.fillText(`Depth: ${(bowlDepth/scale).toFixed(1)}m`, centerX + bowlRadius + 10, centerY - 15);
+        ctx.fillText(`Gnomon: ${(gnomonHeight/scale).toFixed(1)}m`, centerX + bowlRadius + 10, centerY);
+      }
+    }
+    
+    // Location-specific information
+    if (showDimensions) {
+      const infoY = centerY - bowlRadius - 70;
+      
+      ctx.fillStyle = '#2F4F4F';
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText(`Bowl Radius: ${(bowlRadius/scale).toFixed(1)}m`, centerX - 110, infoY - 30);
+      ctx.fillText(`Bowl Depth: ${(bowlDepth/scale).toFixed(1)}m`, centerX - 110, infoY - 15);
+      ctx.fillText(`Gnomon Height: ${(gnomonHeight/scale).toFixed(1)}m`, centerX - 110, infoY);
+      ctx.fillText(`Pole Altitude: ${celestialPoleAlt.toFixed(1)}°`, centerX - 110, infoY + 15);
+      ctx.fillText(`Seasonal Range: ${seasonalRange.toFixed(1)}°`, centerX - 110, infoY + 30);
+      ctx.fillText(`Scale Factor: ${scaleDisplayFactor.toFixed(3)}`, centerX - 110, infoY + 45);
+      
+      // Show this is location-specific
+      ctx.fillStyle = '#8B0000';
+      ctx.font = 'italic 10px Arial';
+      ctx.fillText('↑ Bowl sundial with concave hour projections', centerX - 110, infoY + 60);
+    }
   };
 
   const drawChakraYantra = (ctx, centerX, centerY, scale) => {
     if (!specs?.dimensions) return;
     
-    const outerRadius = (specs.dimensions.outer_ring_radius || 6) * scale;
-    const innerRadius = (specs.dimensions.inner_ring_radius || 3) * scale;
+    // ENHANCED CHAKRA YANTRA - Multi-ring celestial coordinate system
+    const outerRingRadius = (specs.dimensions.outer_ring_radius || 6) * scale;
+    const middleRingRadius = (specs.dimensions.middle_ring_radius || 4.5) * scale;
+    const innerRingRadius = (specs.dimensions.inner_ring_radius || 3) * scale;
+    const centralDiscRadius = (specs.dimensions.central_disc_radius || 1.5) * scale;
+    const ringThickness = (specs.dimensions.ring_thickness || 0.2) * scale;
     
-    // Nested rings
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
-    ctx.stroke();
+    // Location-specific calculations
+    const eclipticAngle = specs.angles?.ecliptic_angle || 23.4;
+    const celestialPoleAlt = specs.angles?.celestial_pole_altitude || 28.7;
+    const equinoxPoints = specs.angles?.equinox_points || [0, 180];
+    const scaleDisplayFactor = specs.dimensions?.latitude_scale_factor || 1.0;
     
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI);
-    ctx.stroke();
+    if (viewMode === 'top') {
+      // MULTI-RING STRUCTURE with different functions
+      const rings = [
+        { radius: outerRingRadius, color: '#8B4513', width: 3, label: 'Horizon Ring' },
+        { radius: middleRingRadius, color: '#4682B4', width: 2.5, label: 'Ecliptic Ring' },
+        { radius: innerRingRadius, color: '#228B22', width: 2, label: 'Equator Ring' },
+        { radius: centralDiscRadius, color: '#DC143C', width: 2, label: 'Pole Disc' }
+      ];
+      
+      rings.forEach((ring, index) => {
+        ctx.strokeStyle = ring.color;
+        ctx.lineWidth = ring.width;
+        
+        // Main ring
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, ring.radius, 0, 2 * Math.PI);
+        ctx.stroke();
+        
+        // Ring thickness indication (for outer rings)
+        if (index < 3) {
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, ring.radius - ringThickness, 0, 2 * Math.PI);
+          ctx.stroke();
+        }
+        
+        // Ring labels
+        if (showDimensions) {
+          ctx.fillStyle = ring.color;
+          ctx.font = '9px Arial';
+          ctx.fillText(ring.label, centerX + ring.radius + 5, centerY - index * 12);
+        }
+      });
+      
+      // ENHANCED ZODIAC/MONTH DIVISIONS (outer ring)
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 1.5;
+      
+      const zodiacSigns = [
+        'Ari', 'Tau', 'Gem', 'Can', 'Leo', 'Vir',
+        'Lib', 'Sco', 'Sag', 'Cap', 'Aqu', 'Pis'
+      ];
+      
+      for (let month = 0; month < 12; month++) {
+        const angle = (month * 30 * Math.PI) / 180; // 30° per zodiac sign
+        
+        // Zodiac division line
+        const x1 = centerX + Math.cos(angle - Math.PI/2) * (outerRingRadius - 15);
+        const y1 = centerY + Math.sin(angle - Math.PI/2) * (outerRingRadius - 15);
+        const x2 = centerX + Math.cos(angle - Math.PI/2) * outerRingRadius;
+        const y2 = centerY + Math.sin(angle - Math.PI/2) * outerRingRadius;
+        
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        // Zodiac labels
+        if (showDimensions) {
+          const labelRadius = outerRingRadius + 12;
+          const labelX = centerX + Math.cos(angle - Math.PI/2 + Math.PI/24) * labelRadius;
+          const labelY = centerY + Math.sin(angle - Math.PI/2 + Math.PI/24) * labelRadius;
+          
+          ctx.fillStyle = '#8B4513';
+          ctx.font = 'bold 8px Arial';
+          ctx.fillText(zodiacSigns[month], labelX - 8, labelY + 3);
+        }
+      }
+      
+      // ECLIPTIC PLANE VISUALIZATION (middle ring)
+      ctx.strokeStyle = '#4682B4';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      
+      // Show ecliptic tilt with indicators
+      const tiltIndicators = 4;
+      for (let i = 0; i < tiltIndicators; i++) {
+        const angle = (i * Math.PI) / 2;
+        const tiltOffset = Math.sin(eclipticAngle * Math.PI / 180) * 12;
+        
+        const x1 = centerX + Math.cos(angle) * middleRingRadius;
+        const y1 = centerY + Math.sin(angle) * middleRingRadius;
+        const x2 = x1;
+        const y2 = y1 + (i % 2 === 0 ? tiltOffset : -tiltOffset);
+        
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      
+      // ENHANCED HOUR MARKINGS (inner ring)
+      ctx.strokeStyle = '#228B22';
+      ctx.lineWidth = 1.2;
+      
+      for (let hour = 0; hour < 24; hour++) {
+        const angle = (hour * 15 * Math.PI) / 180; // 15° per hour
+        const isMainHour = hour % 6 === 0;
+        const lineLength = isMainHour ? 12 : 6;
+        
+        const x1 = centerX + Math.cos(angle - Math.PI/2) * (innerRingRadius - lineLength);
+        const y1 = centerY + Math.sin(angle - Math.PI/2) * (innerRingRadius - lineLength);
+        const x2 = centerX + Math.cos(angle - Math.PI/2) * innerRingRadius;
+        const y2 = centerY + Math.sin(angle - Math.PI/2) * innerRingRadius;
+        
+        ctx.lineWidth = isMainHour ? 2 : 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        // Major hour labels
+        if (isMainHour && showDimensions) {
+          const labelX = centerX + Math.cos(angle - Math.PI/2) * (innerRingRadius - 20);
+          const labelY = centerY + Math.sin(angle - Math.PI/2) * (innerRingRadius - 20);
+          
+          ctx.fillStyle = '#228B22';
+          ctx.font = 'bold 9px Arial';
+          ctx.fillText(`${hour}h`, labelX - 6, labelY + 3);
+        }
+      }
+      
+      // CARDINAL CROSS LINES
+      ctx.strokeStyle = '#FF0000';
+      ctx.lineWidth = 2;
+      
+      // N-S line
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY - outerRingRadius);
+      ctx.lineTo(centerX, centerY + outerRingRadius);
+      ctx.stroke();
+      
+      // E-W line
+      ctx.beginPath();
+      ctx.moveTo(centerX - outerRingRadius, centerY);
+      ctx.lineTo(centerX + outerRingRadius, centerY);
+      ctx.stroke();
+      
+      // Cardinal labels
+      if (showDimensions) {
+        ctx.fillStyle = '#FF0000';
+        ctx.font = 'bold 11px Arial';
+        ctx.fillText('N', centerX - 4, centerY - outerRingRadius - 8);
+        ctx.fillText('S', centerX - 4, centerY + outerRingRadius + 15);
+        ctx.fillText('E', centerX + outerRingRadius + 8, centerY + 4);
+        ctx.fillText('W', centerX - outerRingRadius - 15, centerY + 4);
+      }
+      
+      // EQUINOX POINTS MARKING
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 2;
+      equinoxPoints.forEach(point => {
+        const angle = (point * Math.PI) / 180;
+        const x = centerX + Math.cos(angle - Math.PI/2) * middleRingRadius;
+        const y = centerY + Math.sin(angle - Math.PI/2) * middleRingRadius;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.stroke();
+        
+        if (showDimensions) {
+          ctx.fillStyle = '#FFD700';
+          ctx.font = '8px Arial';
+          ctx.fillText(point === 0 ? 'Spr' : 'Aut', x + 6, y);
+        }
+      });
+      
+      // CENTRAL POLE DISC
+      ctx.fillStyle = '#DC143C';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, centralDiscRadius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#8B0000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+    } else if (viewMode === 'side') {
+      // SIDE VIEW - Ring assembly structure
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Base platform
+      ctx.fillStyle = 'rgba(245, 243, 237, 0.3)';
+      ctx.fillRect(centerX - outerRingRadius - 15, centerY + 25, 
+                   2 * (outerRingRadius + 15), 15);
+      ctx.strokeRect(centerX - outerRingRadius - 15, centerY + 25, 
+                     2 * (outerRingRadius + 15), 15);
+      
+      // Ring assembly (stacked rings)
+      const ringHeights = [0, 6, 12, 18];
+      const ringData = [
+        { radius: outerRingRadius, color: '#8B4513', width: 3 },
+        { radius: middleRingRadius, color: '#4682B4', width: 2.5 },
+        { radius: innerRingRadius, color: '#228B22', width: 2 },
+        { radius: centralDiscRadius, color: '#DC143C', width: 2 }
+      ];
+      
+      ringData.forEach((ring, index) => {
+        ctx.strokeStyle = ring.color;
+        ctx.lineWidth = ring.width;
+        
+        const ringY = centerY + 25 - ringHeights[index];
+        ctx.strokeRect(centerX - ring.radius, ringY - 3, 2 * ring.radius, 6);
+        
+        // Ring thickness indication
+        if (index < 3) {
+          ctx.lineWidth = 1;
+          ctx.strokeRect(centerX - ring.radius + ringThickness, ringY - 2, 
+                        2 * (ring.radius - ringThickness), 4);
+        }
+      });
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#8B4513';
+        ctx.font = '10px Arial';
+        ctx.fillText(`Outer R: ${(outerRingRadius/scale).toFixed(1)}m`, 
+                    centerX + outerRingRadius + 10, centerY - 5);
+        ctx.fillText(`Ring Thickness: ${(ringThickness/scale).toFixed(2)}m`, 
+                    centerX + outerRingRadius + 10, centerY + 10);
+      }
+    }
     
-    // Cross lines
-    ctx.beginPath();
-    ctx.moveTo(centerX - outerRadius, centerY);
-    ctx.lineTo(centerX + outerRadius, centerY);
-    ctx.moveTo(centerX, centerY - outerRadius);
-    ctx.lineTo(centerX, centerY + outerRadius);
-    ctx.stroke();
+    // Location-specific information
+    if (showDimensions) {
+      const infoY = centerY - outerRingRadius - 80;
+      
+      ctx.fillStyle = '#2F4F4F';
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText(`Outer Ring R: ${(outerRingRadius/scale).toFixed(1)}m`, centerX - 120, infoY - 35);
+      ctx.fillText(`Ecliptic Angle: ${eclipticAngle.toFixed(1)}°`, centerX - 120, infoY - 20);
+      ctx.fillText(`Pole Altitude: ${celestialPoleAlt.toFixed(1)}°`, centerX - 120, infoY - 5);
+      ctx.fillText(`Rings: 4 concentric (multi-function)`, centerX - 120, infoY + 10);
+      ctx.fillText(`Scale Factor: ${scaleDisplayFactor.toFixed(3)}`, centerX - 120, infoY + 25);
+      
+      // Show this is location-specific
+      ctx.fillStyle = '#8B0000';
+      ctx.font = 'italic 10px Arial';
+      ctx.fillText('↑ Multi-ring celestial coordinate system', centerX - 120, infoY + 40);
+    }
   };
 
   const drawUnnatamsaYantra = (ctx, centerX, centerY, scale) => {
     if (!specs?.dimensions) return;
     
+    // ENHANCED UNNATAMSA YANTRA - Solar altitude measurement quadrant
     const arcRadius = (specs.dimensions.arc_radius || 4) * scale;
+    const baseLength = (specs.dimensions.base_length || 6) * scale;
+    const wallThickness = (specs.dimensions.wall_thickness || 0.4) * scale;
+    const pillarHeight = (specs.dimensions.pillar_height || 8) * scale;
     
-    // Quarter circle
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, arcRadius, 0, Math.PI/2);
-    ctx.stroke();
+    // Location-specific calculations
+    const maxSolarAltitude = specs.angles?.max_solar_altitude || 85.3;
+    const solsticeAltitudes = {
+      summer: specs.angles?.summer_solstice_altitude || 82.5,
+      winter: specs.angles?.winter_solstice_altitude || 35.7
+    };
+    const noonAltitude = specs.angles?.noon_altitude || 59.2;
+    const scaleDisplayFactor = specs.dimensions?.latitude_scale_factor || 1.0;
     
-    // Base lines
-    ctx.beginPath();
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX + arcRadius, centerY);
-    ctx.moveTo(centerX, centerY);
-    ctx.lineTo(centerX, centerY - arcRadius);
-    ctx.stroke();
-    
-    // Degree markings
-    for (let i = 0; i <= 90; i += 15) {
-      const angle = (i * Math.PI) / 180;
-      const x1 = centerX + Math.cos(angle) * (arcRadius - 8);
-      const y1 = centerY - Math.sin(angle) * (arcRadius - 8);
-      const x2 = centerX + Math.cos(angle) * arcRadius;
-      const y2 = centerY - Math.sin(angle) * arcRadius;
+    if (viewMode === 'top') {
+      // TOP VIEW - L-shaped base structure
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Horizontal base arm
+      ctx.fillStyle = 'rgba(245, 243, 237, 0.3)';
+      ctx.fillRect(centerX, centerY - wallThickness/2, baseLength, wallThickness);
+      ctx.strokeRect(centerX, centerY - wallThickness/2, baseLength, wallThickness);
+      
+      // Vertical base arm
+      ctx.fillRect(centerX - wallThickness/2, centerY - baseLength, wallThickness, baseLength);
+      ctx.strokeRect(centerX - wallThickness/2, centerY - baseLength, wallThickness, baseLength);
+      
+      // Central pivot point
+      ctx.strokeStyle = '#A0522D';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 6, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.fillStyle = '#D2B48C';
+      ctx.fill();
+      
+      // Quadrant arc indication (dotted)
+      ctx.strokeStyle = '#4682B4';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, arcRadius, 0, Math.PI/2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Alignment indicators
+      if (showDimensions) {
+        ctx.fillStyle = '#8B4513';
+        ctx.font = 'bold 10px Arial';
+        ctx.fillText('EAST', centerX + baseLength/2 - 10, centerY + 15);
+        ctx.fillText('NORTH', centerX - 20, centerY - baseLength/2);
+        
+        // Shadow direction indicator
+        ctx.strokeStyle = '#FF6347';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        const shadowAngle = (45 * Math.PI) / 180; // Sample noon shadow
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(centerX + Math.cos(shadowAngle) * arcRadius * 0.7, 
+                   centerY - Math.sin(shadowAngle) * arcRadius * 0.7);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.fillStyle = '#FF6347';
+        ctx.font = '8px Arial';
+        ctx.fillText('Shadow', centerX + 20, centerY - 20);
+      }
+      
+    } else if (viewMode === 'side') {
+      // ENHANCED SIDE VIEW - Vertical quadrant arc
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      
+      // Base platform
+      ctx.fillStyle = 'rgba(245, 243, 237, 0.3)';
+      ctx.fillRect(centerX - baseLength/2, centerY + 25, baseLength, 15);
+      ctx.strokeRect(centerX - baseLength/2, centerY + 25, baseLength, 15);
+      
+      // Vertical support pillar
+      ctx.strokeStyle = '#A0522D';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY + 25);
+      ctx.lineTo(centerX, centerY + 25 - pillarHeight);
+      ctx.stroke();
+      
+      // Quarter circle arc (90° altitude measurement)
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, arcRadius, 0, Math.PI/2);
+      ctx.stroke();
+      
+      // Base lines (horizontal and vertical reference)
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX + arcRadius + 15, centerY);
+      ctx.stroke();
       
       ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(centerX, centerY - arcRadius - 15);
+      ctx.stroke();
+      
+      // ENHANCED ALTITUDE MARKINGS with location-specific data
+      ctx.strokeStyle = '#CD853F';
+      ctx.lineWidth = 1.5;
+      
+      for (let altitude = 0; altitude <= 90; altitude += 10) {
+        const angle = (altitude * Math.PI) / 180;
+        const isMajor = altitude % 30 === 0;
+        const markLength = isMajor ? 15 : 8;
+        
+        const x1 = centerX + Math.cos(angle) * (arcRadius - markLength);
+        const y1 = centerY - Math.sin(angle) * (arcRadius - markLength);
+        const x2 = centerX + Math.cos(angle) * arcRadius;
+        const y2 = centerY - Math.sin(angle) * arcRadius;
+        
+        ctx.lineWidth = isMajor ? 2 : 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        
+        // Degree labels
+        if (isMajor && showDimensions) {
+          const labelX = centerX + Math.cos(angle) * (arcRadius + 12);
+          const labelY = centerY - Math.sin(angle) * (arcRadius + 12);
+          
+          ctx.fillStyle = '#CD853F';
+          ctx.font = 'bold 9px Arial';
+          ctx.fillText(`${altitude}°`, labelX - 6, labelY + 3);
+        }
+      }
+      
+      // SPECIAL SOLAR ALTITUDE MARKINGS
+      // Summer solstice
+      const summerAngle = (solsticeAltitudes.summer * Math.PI) / 180;
+      const summerX = centerX + Math.cos(summerAngle) * arcRadius;
+      const summerY = centerY - Math.sin(summerAngle) * arcRadius;
+      
+      ctx.strokeStyle = '#FF6347';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(summerX, summerY, 4, 0, 2 * Math.PI);
       ctx.stroke();
       
       if (showDimensions) {
-        ctx.fillStyle = '#654321';
-        ctx.fillText(`${i}°`, x1 - 5, y1 - 5);
+        ctx.fillStyle = '#FF6347';
+        ctx.font = 'bold 8px Arial';
+        ctx.fillText(`Summer: ${solsticeAltitudes.summer.toFixed(1)}°`, 
+                    summerX + 6, summerY);
       }
+      
+      // Winter solstice
+      const winterAngle = (solsticeAltitudes.winter * Math.PI) / 180;
+      const winterX = centerX + Math.cos(winterAngle) * arcRadius;
+      const winterY = centerY - Math.sin(winterAngle) * arcRadius;
+      
+      ctx.strokeStyle = '#4169E1';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(winterX, winterY, 4, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#4169E1';
+        ctx.font = 'bold 8px Arial';
+        ctx.fillText(`Winter: ${solsticeAltitudes.winter.toFixed(1)}°`, 
+                    winterX + 6, winterY);
+      }
+      
+      // Current noon altitude (equinox approximate)
+      const noonAngle = (noonAltitude * Math.PI) / 180;
+      const noonX = centerX + Math.cos(noonAngle) * arcRadius;
+      const noonY = centerY - Math.sin(noonAngle) * arcRadius;
+      
+      ctx.strokeStyle = '#FFD700';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(noonX, noonY, 3, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      if (showDimensions) {
+        ctx.fillStyle = '#FFD700';
+        ctx.font = 'bold 8px Arial';
+        ctx.fillText(`Noon: ${noonAltitude.toFixed(1)}°`, noonX + 6, noonY);
+      }
+      
+      // Gnomon/plumb line indicator
+      ctx.strokeStyle = '#8B0000';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY - arcRadius + 10);
+      ctx.lineTo(centerX, centerY);
+      ctx.stroke();
+      
+      // Horizontal reference line label
+      if (showDimensions) {
+        ctx.fillStyle = '#8B4513';
+        ctx.font = '9px Arial';
+        ctx.fillText('Horizon', centerX + arcRadius - 20, centerY + 12);
+        ctx.fillText('Zenith', centerX - 15, centerY - arcRadius - 8);
+      }
+    }
+    
+    // Location-specific information
+    if (showDimensions) {
+      const infoY = centerY - arcRadius - 70;
+      
+      ctx.fillStyle = '#2F4F4F';
+      ctx.font = 'bold 11px Arial';
+      ctx.fillText(`Arc Radius: ${(arcRadius/scale).toFixed(1)}m`, centerX - 100, infoY - 35);
+      ctx.fillText(`Base Length: ${(baseLength/scale).toFixed(1)}m`, centerX - 100, infoY - 20);
+      ctx.fillText(`Max Solar Alt: ${maxSolarAltitude.toFixed(1)}°`, centerX - 100, infoY - 5);
+      ctx.fillText(`Summer Sol: ${solsticeAltitudes.summer.toFixed(1)}°`, centerX - 100, infoY + 10);
+      ctx.fillText(`Winter Sol: ${solsticeAltitudes.winter.toFixed(1)}°`, centerX - 100, infoY + 25);
+      ctx.fillText(`Scale Factor: ${scaleDisplayFactor.toFixed(3)}`, centerX - 100, infoY + 40);
+      
+      // Show this is location-specific
+      ctx.fillStyle = '#8B0000';
+      ctx.font = 'italic 10px Arial';
+      ctx.fillText('↑ Solar altitude measurements with seasonal variations', centerX - 100, infoY + 55);
     }
   };
 

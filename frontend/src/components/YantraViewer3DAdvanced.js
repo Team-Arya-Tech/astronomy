@@ -74,12 +74,6 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
   const sceneRef = useRef(null);
   const cameraRef = useRef(null);
   const animationIdRef = useRef(null);
-  const controlsRef = useRef({
-    rotation: true,
-    timeSpeed: 1,
-    sunAngle: 0,
-    zoom: 25
-  });
 
   const [isPlaying, setIsPlaying] = useState(true);
   const [timeOfDay, setTimeOfDay] = useState(12); // 12 PM
@@ -97,13 +91,13 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
     scene.fog = new THREE.Fog(0x3e271a, 50, 100);
     sceneRef.current = scene;
 
-    // Create camera with better positioning
-    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(25, 20, 25);
-    camera.lookAt(0, 0, 0);
+    // Create camera with better positioning for full yantra view
+    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+    camera.position.set(35, 30, 35);
+    camera.lookAt(0, 8, 0);
     cameraRef.current = camera;
 
-    // Create renderer with enhanced quality
+    // Create renderer with enhanced quality and light background
     const renderer = new THREE.WebGLRenderer({ 
       antialias: true,
       alpha: true,
@@ -115,7 +109,8 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.8;
+    renderer.toneMappingExposure = 1.0;
+    renderer.setClearColor(0xf8f6f0, 1.0); // Light background color
     rendererRef.current = renderer;
 
     containerRef.current.appendChild(renderer.domElement);
@@ -133,15 +128,8 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
     const animate = () => {
       animationIdRef.current = requestAnimationFrame(animate);
       
-      if (cameraRef.current && controlsRef.current.rotation && isPlaying) {
-        // Smooth camera orbit
-        const time = Date.now() * 0.0002 * controlsRef.current.timeSpeed;
-        const radius = controlsRef.current.zoom;
-        cameraRef.current.position.x = Math.sin(time) * radius;
-        cameraRef.current.position.z = Math.cos(time) * radius;
-        cameraRef.current.position.y = 15 + Math.sin(time * 0.5) * 5;
-        cameraRef.current.lookAt(0, 2, 0);
-      }
+      // Camera stays fixed - only sun position and shadows move
+      // User can manually control camera with mouse/touch
 
       // Update sun position based on time of day
       updateSunPosition(scene, timeOfDay);
@@ -162,6 +150,9 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
 
     window.addEventListener('resize', handleResize);
 
+    // Store container reference for cleanup
+    const container = containerRef.current;
+    
     // Cleanup
     return () => {
       window.removeEventListener('resize', handleResize);
@@ -171,9 +162,9 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
       if (renderer) {
         renderer.dispose();
       }
-      if (containerRef.current && renderer.domElement) {
+      if (container && renderer.domElement) {
         try {
-          containerRef.current.removeChild(renderer.domElement);
+          container.removeChild(renderer.domElement);
         } catch (e) {
           // Element might already be removed
         }
@@ -182,57 +173,58 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
   }, [yantraType, specs, isPlaying, timeOfDay]);
 
   const setupLighting = (scene) => {
-    // Ambient light for general illumination
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.3);
+    // Enhanced ambient light for better visibility
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    // Sun light (directional)
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    sunLight.position.set(10, 20, 10);
+    // Primary sun light (directional) with enhanced shadow settings
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    sunLight.position.set(12, 25, 8);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 4096;
     sunLight.shadow.mapSize.height = 4096;
-    sunLight.shadow.camera.near = 0.5;
-    sunLight.shadow.camera.far = 50;
-    sunLight.shadow.camera.left = -20;
-    sunLight.shadow.camera.right = 20;
-    sunLight.shadow.camera.top = 20;
-    sunLight.shadow.camera.bottom = -20;
-    sunLight.shadow.bias = -0.0001;
+    sunLight.shadow.camera.near = 0.1;
+    sunLight.shadow.camera.far = 60;
+    sunLight.shadow.camera.left = -25;
+    sunLight.shadow.camera.right = 25;
+    sunLight.shadow.camera.top = 25;
+    sunLight.shadow.camera.bottom = -25;
+    sunLight.shadow.bias = -0.00005;
+    sunLight.shadow.normalBias = 0.02;
     scene.add(sunLight);
 
-    // Moonlight (subtle blue light from opposite direction)
-    const moonLight = new THREE.DirectionalLight(0x4169e1, 0.2);
-    moonLight.position.set(-10, 15, -10);
-    scene.add(moonLight);
+    // Secondary fill light (reduced intensity)
+    const fillLight = new THREE.DirectionalLight(0xe3f2fd, 0.3);
+    fillLight.position.set(-8, 12, -15);
+    scene.add(fillLight);
 
-    // Point lights for dramatic effect
-    const pointLight1 = new THREE.PointLight(0xffffff, 0.5, 30);
-    pointLight1.position.set(15, 10, 15);
+    // Accent point lights for depth and realism
+    const pointLight1 = new THREE.PointLight(0xffffff, 0.4, 35);
+    pointLight1.position.set(18, 12, 18);
     scene.add(pointLight1);
 
-    const pointLight2 = new THREE.PointLight(0xff6b35, 0.3, 25);
-    pointLight2.position.set(-15, 8, -15);
+    const pointLight2 = new THREE.PointLight(0xfff8e1, 0.3, 30);
+    pointLight2.position.set(-12, 10, -20);
     scene.add(pointLight2);
   };
 
   const setupEnvironment = (scene) => {
-    // Enhanced ground plane
+    // Enhanced ground plane with lighter color for better shadow visibility
     const groundGeometry = new THREE.PlaneGeometry(100, 100);
     const groundMaterial = new THREE.MeshLambertMaterial({ 
-      color: 0x2d2d2d,
+      color: 0xf5f5f5,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.9
     });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
 
-    // Subtle grid pattern
-    const gridHelper = new THREE.GridHelper(60, 60, 0x444444, 0x222222);
+    // Subtle grid pattern with lighter colors
+    const gridHelper = new THREE.GridHelper(60, 60, 0xcccccc, 0xe8e8e8);
     gridHelper.material.transparent = true;
-    gridHelper.material.opacity = 0.3;
+    gridHelper.material.opacity = 0.4;
     scene.add(gridHelper);
 
     // Add some atmospheric particles
@@ -264,20 +256,47 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
     );
     
     if (sunLight) {
-      // Calculate sun position based on hour (6 AM to 6 PM visible)
-      const angle = ((hour - 6) / 12) * Math.PI; // 0 to π for 6AM to 6PM
-      const elevation = Math.sin(angle) * 20; // Height varies with time
-      const azimuth = Math.cos(angle) * 20; // Horizontal position
+      // More realistic sun path calculation
+      const solarNoon = 12;
+      const hourAngle = (hour - solarNoon) * 15; // 15 degrees per hour
+      const hourAngleRad = hourAngle * Math.PI / 180;
       
-      sunLight.position.set(azimuth, Math.max(elevation, 5), 10);
+      // Simplified solar elevation (assumes equinox for demo)
+      const latitude = 28.6; // Delhi latitude
+      const latitudeRad = latitude * Math.PI / 180;
+      const declination = 0; // Equinox
+      const declinationRad = declination * Math.PI / 180;
       
-      // Change light color based on time of day
-      if (hour < 7 || hour > 17) {
-        sunLight.color.setHex(0xff6b35); // Orange for sunrise/sunset
-        sunLight.intensity = 0.6;
-      } else if (hour >= 7 && hour <= 17) {
-        sunLight.color.setHex(0xffffff); // White for day
-        sunLight.intensity = 1.2;
+      const elevation = Math.asin(
+        Math.sin(declinationRad) * Math.sin(latitudeRad) + 
+        Math.cos(declinationRad) * Math.cos(latitudeRad) * Math.cos(hourAngleRad)
+      );
+      
+      const azimuth = Math.atan2(
+        Math.sin(hourAngleRad),
+        Math.cos(hourAngleRad) * Math.sin(latitudeRad) - 
+        Math.tan(declinationRad) * Math.cos(latitudeRad)
+      );
+      
+      // Position sun based on calculated angles
+      const sunDistance = 30;
+      const sunHeight = Math.max(Math.sin(elevation) * sunDistance, 3);
+      const sunX = Math.sin(azimuth) * Math.cos(elevation) * sunDistance;
+      const sunZ = Math.cos(azimuth) * Math.cos(elevation) * sunDistance;
+      
+      sunLight.position.set(sunX, sunHeight, sunZ);
+      
+      // Dynamic light color and intensity based on elevation
+      const elevationDegrees = elevation * 180 / Math.PI;
+      if (elevationDegrees < 10) {
+        sunLight.color.setHex(0xff8a50); // Orange for low sun
+        sunLight.intensity = 0.8;
+      } else if (elevationDegrees < 30) {
+        sunLight.color.setHex(0xffdd88); // Warm yellow
+        sunLight.intensity = 1.0;
+      } else {
+        sunLight.color.setHex(0xffffff); // White for high sun
+        sunLight.intensity = 1.4;
       }
     }
   };
@@ -288,9 +307,8 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
 
   const resetCamera = () => {
     if (cameraRef.current) {
-      cameraRef.current.position.set(25, 20, 25);
-      cameraRef.current.lookAt(0, 0, 0);
-      controlsRef.current.zoom = 25;
+      cameraRef.current.position.set(35, 30, 35);
+      cameraRef.current.lookAt(0, 8, 0);
     }
   };
 
@@ -299,11 +317,21 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
   };
 
   const handleZoomIn = () => {
-    controlsRef.current.zoom = Math.max(10, controlsRef.current.zoom - 5);
+    if (cameraRef.current) {
+      const currentDistance = cameraRef.current.position.length();
+      const newDistance = Math.max(5, currentDistance - 3);
+      const direction = cameraRef.current.position.clone().normalize();
+      cameraRef.current.position.copy(direction.multiplyScalar(newDistance));
+    }
   };
 
   const handleZoomOut = () => {
-    controlsRef.current.zoom = Math.min(50, controlsRef.current.zoom + 5);
+    if (cameraRef.current) {
+      const currentDistance = cameraRef.current.position.length();
+      const newDistance = Math.min(50, currentDistance + 3);
+      const direction = cameraRef.current.position.clone().normalize();
+      cameraRef.current.position.copy(direction.multiplyScalar(newDistance));
+    }
   };
 
   return (
@@ -313,10 +341,11 @@ const YantraViewer3D = ({ yantraType = 'samrat', specs = null, showControls = tr
         style={{ 
           width: '100%', 
           height: '100%',
+          minHeight: '700px',
           borderRadius: '8px',
           overflow: 'hidden',
-          background: 'linear-gradient(to bottom, #241408 0%, #3e271a 50%, #5c3f2a 100%)',
-          border: '2px solid rgba(212, 165, 116, 0.2)'
+          background: 'linear-gradient(to bottom, #f8f6f0 0%, #f2f0e8 50%, #ede8dc 100%)',
+          border: '2px solid rgba(212, 165, 116, 0.3)'
         }} 
       />
       
@@ -474,66 +503,158 @@ function renderEnhancedSamratYantra(scene, specs, stoneMaterial, marbleMaterial)
   const baseWidth = specs?.dimensions?.base_width || 12;
   const baseLength = specs?.dimensions?.base_length || 15;
   const gnomonHeight = specs?.dimensions?.gnomon_height || 10;
+  const gnomonAngle = specs?.angles?.gnomon_angle || 28;
 
-  // Multi-level base platform
-  const baseGeometry1 = new THREE.BoxGeometry(baseWidth + 2, 0.8, baseLength + 2);
-  const baseMesh1 = new THREE.Mesh(baseGeometry1, stoneMaterial);
-  baseMesh1.position.y = 0.4;
-  baseMesh1.receiveShadow = true;
-  baseMesh1.castShadow = true;
-  scene.add(baseMesh1);
+  // Main Foundation Platform
+  const foundationGeometry = new THREE.BoxGeometry(baseLength * 1.4, 1.0, baseWidth * 1.4);
+  const foundationMesh = new THREE.Mesh(foundationGeometry, stoneMaterial);
+  foundationMesh.position.y = 0.5;
+  foundationMesh.receiveShadow = true;
+  foundationMesh.castShadow = true;
+  scene.add(foundationMesh);
 
-  const baseGeometry2 = new THREE.BoxGeometry(baseWidth, 0.6, baseLength);
-  const baseMesh2 = new THREE.Mesh(baseGeometry2, marbleMaterial);
-  baseMesh2.position.y = 1.1;
-  baseMesh2.receiveShadow = true;
-  baseMesh2.castShadow = true;
-  scene.add(baseMesh2);
+  // Central platform where gnomon sits
+  const centralPlatformGeometry = new THREE.BoxGeometry(baseLength * 0.3, 0.2, baseWidth * 0.9);
+  const centralPlatformMesh = new THREE.Mesh(centralPlatformGeometry, marbleMaterial);
+  centralPlatformMesh.position.y = 1.1;
+  centralPlatformMesh.receiveShadow = true;
+  centralPlatformMesh.castShadow = true;
+  scene.add(centralPlatformMesh);
 
-  // Enhanced gnomon with triangular design
-  const gnomonGeometry = new THREE.ConeGeometry(0.2, gnomonHeight, 4);
-  const gnomonMesh = new THREE.Mesh(gnomonGeometry, stoneMaterial);
-  gnomonMesh.position.y = gnomonHeight / 2 + 1.4;
-  gnomonMesh.rotation.z = Math.PI / 6; // Tilt based on latitude
-  gnomonMesh.castShadow = true;
-  scene.add(gnomonMesh);
+  // MASSIVE TRIANGULAR GNOMON WALL - The key element
+  const gnomonWallGeometry = new THREE.BoxGeometry(gnomonHeight * 0.3, gnomonHeight, baseWidth * 0.8);
+  const gnomonWallMesh = new THREE.Mesh(gnomonWallGeometry, stoneMaterial);
+  gnomonWallMesh.position.set(0, gnomonHeight / 2 + 1.2, 0);
+  gnomonWallMesh.rotation.z = -gnomonAngle * Math.PI / 180;
+  gnomonWallMesh.castShadow = true;
+  gnomonWallMesh.receiveShadow = true;
+  scene.add(gnomonWallMesh);
 
-  // Detailed hour markings with numbers
-  for (let i = -6; i <= 6; i++) {
-    const angle = (i * 15) * Math.PI / 180;
-    const markLength = baseLength / 2 - 1;
-    
-    // Hour line
-    const markGeometry = new THREE.BoxGeometry(0.15, 0.2, markLength);
-    const markMesh = new THREE.Mesh(markGeometry, stoneMaterial);
-    markMesh.position.set(
-      Math.sin(angle) * markLength / 2,
-      1.5,
-      Math.cos(angle) * markLength / 2
-    );
-    markMesh.rotation.y = angle;
-    markMesh.castShadow = true;
-    scene.add(markMesh);
+  // Hypotenuse edge (the critical shadow-casting edge parallel to Earth's axis)
+  const hypotenuseGeometry = new THREE.BoxGeometry(0.2, gnomonHeight * 0.8, baseWidth * 0.8);
+  const hypotenuseMesh = new THREE.Mesh(hypotenuseGeometry, marbleMaterial);
+  hypotenuseMesh.position.set(gnomonHeight * 0.15, gnomonHeight * 0.7 + 1.2, 0);
+  hypotenuseMesh.rotation.z = -gnomonAngle * Math.PI / 180;
+  hypotenuseMesh.castShadow = true;
+  scene.add(hypotenuseMesh);
 
-    // Hour markers (small stones)
-    const hourMarkerGeometry = new THREE.SphereGeometry(0.2, 8, 6);
-    const hourMarkerMesh = new THREE.Mesh(hourMarkerGeometry, stoneMaterial);
-    hourMarkerMesh.position.set(
-      Math.sin(angle) * (markLength + 1),
-      1.6,
-      Math.cos(angle) * (markLength + 1)
-    );
-    hourMarkerMesh.castShadow = true;
-    scene.add(hourMarkerMesh);
+  // EAST QUADRANT PLATFORM (AM hours) - Stepped structure
+  const eastQuadrantGroup = new THREE.Group();
+  eastQuadrantGroup.position.set(baseLength * 0.5, 1.0, 0);
+  
+  // Main quadrant base
+  const eastBaseGeometry = new THREE.BoxGeometry(baseLength * 0.7, 0.2, baseWidth * 0.8);
+  const eastBaseMesh = new THREE.Mesh(eastBaseGeometry, marbleMaterial);
+  eastBaseMesh.position.y = 0.1;
+  eastBaseMesh.receiveShadow = true;
+  eastBaseMesh.castShadow = true;
+  eastQuadrantGroup.add(eastBaseMesh);
+
+  // Multiple stepped levels for time readings
+  for (let i = 0; i < 6; i++) {
+    const stepGeometry = new THREE.BoxGeometry(baseLength * 0.08, 0.15, baseWidth * 0.75);
+    const stepMesh = new THREE.Mesh(stepGeometry, stoneMaterial);
+    stepMesh.position.set(-baseLength * 0.2 + i * baseLength * 0.1, 0.2 + i * 0.1, 0);
+    stepMesh.receiveShadow = true;
+    stepMesh.castShadow = true;
+    eastQuadrantGroup.add(stepMesh);
   }
 
-  // Decorative border
-  const borderGeometry = new THREE.TorusGeometry(baseWidth / 2 + 1, 0.3, 8, 32);
-  const borderMesh = new THREE.Mesh(borderGeometry, stoneMaterial);
-  borderMesh.position.y = 0.8;
-  borderMesh.rotation.x = Math.PI / 2;
-  borderMesh.castShadow = true;
-  scene.add(borderMesh);
+  // Surrounding walls for East quadrant
+  const eastWallGeometry1 = new THREE.BoxGeometry(baseLength * 0.6, 1.0, 0.3);
+  const eastWallMesh1 = new THREE.Mesh(eastWallGeometry1, stoneMaterial);
+  eastWallMesh1.position.set(baseLength * 0.05, 0.5, baseWidth * 0.45);
+  eastWallMesh1.castShadow = true;
+  eastWallMesh1.receiveShadow = true;
+  eastQuadrantGroup.add(eastWallMesh1);
+
+  const eastWallMesh2 = new THREE.Mesh(eastWallGeometry1, stoneMaterial);
+  eastWallMesh2.position.set(baseLength * 0.05, 0.5, -baseWidth * 0.45);
+  eastWallMesh2.castShadow = true;
+  eastWallMesh2.receiveShadow = true;
+  eastQuadrantGroup.add(eastWallMesh2);
+
+  scene.add(eastQuadrantGroup);
+
+  // WEST QUADRANT PLATFORM (PM hours) - Mirror of East
+  const westQuadrantGroup = new THREE.Group();
+  westQuadrantGroup.position.set(-baseLength * 0.5, 1.0, 0);
+  
+  // Main quadrant base
+  const westBaseGeometry = new THREE.BoxGeometry(baseLength * 0.7, 0.2, baseWidth * 0.8);
+  const westBaseMesh = new THREE.Mesh(westBaseGeometry, marbleMaterial);
+  westBaseMesh.position.y = 0.1;
+  westBaseMesh.receiveShadow = true;
+  westBaseMesh.castShadow = true;
+  westQuadrantGroup.add(westBaseMesh);
+
+  // Multiple stepped levels for time readings
+  for (let i = 0; i < 6; i++) {
+    const stepGeometry = new THREE.BoxGeometry(baseLength * 0.08, 0.15, baseWidth * 0.75);
+    const stepMesh = new THREE.Mesh(stepGeometry, stoneMaterial);
+    stepMesh.position.set(baseLength * 0.2 - i * baseLength * 0.1, 0.2 + i * 0.1, 0);
+    stepMesh.receiveShadow = true;
+    stepMesh.castShadow = true;
+    westQuadrantGroup.add(stepMesh);
+  }
+
+  // Surrounding walls for West quadrant
+  const westWallGeometry1 = new THREE.BoxGeometry(baseLength * 0.6, 1.0, 0.3);
+  const westWallMesh1 = new THREE.Mesh(westWallGeometry1, stoneMaterial);
+  westWallMesh1.position.set(-baseLength * 0.05, 0.5, baseWidth * 0.45);
+  westWallMesh1.castShadow = true;
+  westWallMesh1.receiveShadow = true;
+  westQuadrantGroup.add(westWallMesh1);
+
+  const westWallMesh2 = new THREE.Mesh(westWallGeometry1, stoneMaterial);
+  westWallMesh2.position.set(-baseLength * 0.05, 0.5, -baseWidth * 0.45);
+  westWallMesh2.castShadow = true;
+  westWallMesh2.receiveShadow = true;
+  westQuadrantGroup.add(westWallMesh2);
+
+  scene.add(westQuadrantGroup);
+
+  // Hour marking lines on quadrants
+  for (let i = 0; i < 12; i++) {
+    // East quadrant markings
+    const eastMarkGeometry = new THREE.BoxGeometry(baseLength * 0.4, 0.02, 0.05);
+    const eastMarkMesh = new THREE.Mesh(eastMarkGeometry, stoneMaterial);
+    eastMarkMesh.position.set(
+      baseLength * 0.3, 
+      1.4, 
+      -baseWidth * 0.35 + i * baseWidth * 0.06
+    );
+    eastMarkMesh.castShadow = true;
+    scene.add(eastMarkMesh);
+
+    // West quadrant markings
+    const westMarkGeometry = new THREE.BoxGeometry(baseLength * 0.4, 0.02, 0.05);
+    const westMarkMesh = new THREE.Mesh(westMarkGeometry, stoneMaterial);
+    westMarkMesh.position.set(
+      -baseLength * 0.3, 
+      1.4, 
+      -baseWidth * 0.35 + i * baseWidth * 0.06
+    );
+    westMarkMesh.castShadow = true;
+    scene.add(westMarkMesh);
+  }
+
+  // Corner architectural elements
+  const cornerGeometry = new THREE.BoxGeometry(0.8, 1.5, 0.8);
+  const positions = [
+    [baseLength * 0.7, 1.75, baseWidth * 0.6],
+    [-baseLength * 0.7, 1.75, baseWidth * 0.6],
+    [baseLength * 0.7, 1.75, -baseWidth * 0.6],
+    [-baseLength * 0.7, 1.75, -baseWidth * 0.6]
+  ];
+  
+  positions.forEach(pos => {
+    const cornerMesh = new THREE.Mesh(cornerGeometry, stoneMaterial);
+    cornerMesh.position.set(...pos);
+    cornerMesh.castShadow = true;
+    cornerMesh.receiveShadow = true;
+    scene.add(cornerMesh);
+  });
 }
 
 function renderEnhancedRamaYantra(scene, specs, stoneMaterial, brassMaterial) {

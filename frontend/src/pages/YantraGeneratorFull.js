@@ -239,7 +239,7 @@ const YantraGenerator = () => {
 
       <Grid container spacing={4}>
         {/* Input Panel */}
-        <Grid item xs={12} lg={4}>
+        <Grid item xs={12} lg={3}>
           <Card sx={{ height: 'fit-content' }}>
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -350,7 +350,7 @@ const YantraGenerator = () => {
                 variant="contained"
                 size="large"
                 onClick={generateYantra}
-                disabled={loading || !coordinates.latitude || !coordinates.longitude || !selectedYantra}
+                disabled={loading || !coordinates.latitude || !coordinates.longitude}
                 sx={{ mb: 2, py: 1.5 }}
                 startIcon={loading ? <CircularProgress size={20} /> : <ThreeDRotation />}
               >
@@ -360,15 +360,6 @@ const YantraGenerator = () => {
               {error && (
                 <Alert severity="error" sx={{ mb: 2 }}>
                   {error}
-                </Alert>
-              )}
-              
-              {(!selectedYantra || !coordinates.latitude || !coordinates.longitude) && (
-                <Alert severity="info" sx={{ mb: 2 }}>
-                  Please select:
-                  {!selectedYantra && " • Yantra Type"}
-                  {!coordinates.latitude && " • Latitude"} 
-                  {!coordinates.longitude && " • Longitude"}
                 </Alert>
               )}
               
@@ -456,8 +447,8 @@ const YantraGenerator = () => {
         </Grid>
 
         {/* Main Content Area */}
-        <Grid item xs={12} lg={8}>
-          <Card sx={{ height: '600px' }}>
+        <Grid item xs={12} lg={9}>
+          <Card sx={{ height: '800px' }}>
             <CardContent sx={{ p: 3, height: '100%' }}>
               <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
                 <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
@@ -468,7 +459,7 @@ const YantraGenerator = () => {
               </Box>
               
               {activeTab === 0 && (
-                <Box sx={{ height: '500px' }}>
+                <Box sx={{ height: '720px' }}>
                   {yantraSpecs ? (
                     <YantraViewer3D 
                       yantraType={getShortYantraType(selectedYantra)} 
@@ -500,7 +491,7 @@ const YantraGenerator = () => {
               )}
               
               {activeTab === 1 && (
-                <Box sx={{ height: '500px' }}>
+                <Box sx={{ height: '720px' }}>
                   {yantraSpecs ? (
                     <YantraViewer2D 
                       yantraType={getShortYantraType(selectedYantra)} 

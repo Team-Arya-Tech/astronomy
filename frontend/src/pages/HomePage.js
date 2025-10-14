@@ -74,25 +74,46 @@ const HomePage = () => {
         <Box
           sx={{
             textAlign: 'center',
-            py: { xs: 4, md: 8 },
-            background: 'linear-gradient(145deg, rgba(45,24,16,0.8) 0%, rgba(31,22,17,0.9) 100%)',
-            backdropFilter: 'blur(10px)',
+            py: { xs: 6, md: 10 },
+            backgroundImage: 'url(/banner.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            position: 'relative',
             borderRadius: 4,
             mb: 6,
-            border: '1px solid rgba(212,175,55,0.2)',
-            color: 'white'
+            border: '1px solid rgba(212,175,55,0.3)',
+            color: 'white',
+            minHeight: { xs: '60vh', md: '70vh' },
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(145deg, rgba(0,0,0,0.6) 0%, rgba(45,24,16,0.8) 100%)',
+              borderRadius: 4,
+              zIndex: 1
+            }
           }}
         >
+          <Box sx={{ position: 'relative', zIndex: 2 }}>
           <Typography
             variant="h1"
             sx={{
-              fontSize: { xs: '2.5rem', md: '4rem' },
+              fontSize: { xs: '3rem', md: '5rem' },
               fontWeight: 'bold',
-              background: 'linear-gradient(45deg, #D4AF37 30%, #F4E4BC 90%)',
+              background: 'linear-gradient(45deg, #CD7F32 0%, #B87333 20%, #DAA520 40%, #CD7F32 60%, #8B4513 80%, #A0522D 100%)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              mb: 2
+              mb: 2,
+              letterSpacing: '0.1em'
             }}
           >
             YANTRA.AI
@@ -101,10 +122,12 @@ const HomePage = () => {
           <Typography
             variant="h4"
             sx={{
-              fontSize: { xs: '1.2rem', md: '1.8rem' },
+              fontSize: { xs: '1.4rem', md: '2rem' },
               mb: 3,
-              opacity: 0.9,
-              color: '#F5E6D3'
+              color: '#FFFFFF',
+              textShadow: '1px 1px 3px rgba(0,0,0,0.8)',
+              fontWeight: 500,
+              letterSpacing: '0.02em'
             }}
           >
             Reviving Ancient Indian Astronomy through AI & Computational Geometry
@@ -113,32 +136,38 @@ const HomePage = () => {
           <Typography
             variant="h6"
             sx={{
-              fontSize: { xs: '1rem', md: '1.2rem' },
-              mb: 4,
-              opacity: 0.8,
-              maxWidth: '800px',
+              fontSize: { xs: '1.1rem', md: '1.4rem' },
+              mb: 5,
+              maxWidth: '900px',
               mx: 'auto',
-              color: '#DEB887'
+              color: '#F0F0F0',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.7)',
+              lineHeight: 1.6,
+              fontWeight: 400
             }}
           >
             Generate geometric dimensions of astronomical instruments (yantras) for any location on Earth. 
             Where heritage meets precision science.
           </Typography>
           
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button
               variant="contained"
               size="large"
               onClick={() => navigate('/generator')}
               sx={{
-                px: 4,
-                py: 1.5,
-                fontSize: '1.1rem',
+                px: 5,
+                py: 2,
+                fontSize: '1.2rem',
                 borderRadius: 3,
-                background: 'linear-gradient(45deg, #D4AF37 30%, #CD853F 90%)',
+                background: 'linear-gradient(45deg, #FFD700 20%, #D4AF37 90%)',
+                color: '#000',
+                fontWeight: 'bold',
+                boxShadow: '0 4px 15px rgba(184, 133, 5, 0.28)',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #B8860B 30%, #D4AF37 90%)',
-                  transform: 'translateY(-2px)'
+                  background: 'linear-gradient(45deg, #FFA500 20%, #B8860B 90%)',
+                  transform: 'translateY(-3px)',
+                  boxShadow: '0 6px 20px rgba(255,215,0,0.6)'
                 }
               }}
             >
@@ -150,21 +179,27 @@ const HomePage = () => {
               size="large"
               onClick={() => navigate('/visualization')}
               sx={{
-                px: 4,
-                py: 1.5,
-                fontSize: '1.1rem',
+                px: 5,
+                py: 2,
+                fontSize: '1.2rem',
                 borderRadius: 3,
-                borderColor: '#F5E6D3',
-                color: '#F5E6D3',
+                borderColor: '#FFFFFF',
+                borderWidth: 2,
+                color: '#FFFFFF',
+                fontWeight: 'bold',
+                backdropFilter: 'blur(10px)',
+                backgroundColor: 'rgba(255,255,255,0.1)',
                 '&:hover': {
-                  borderColor: '#D4AF37',
-                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                  transform: 'translateY(-2px)'
+                  borderColor: '#FFD700',
+                  backgroundColor: 'rgba(255,215,0,0.2)',
+                  transform: 'translateY(-3px)',
+                  boxShadow: '0 6px 20px rgba(255,255,255,0.3)'
                 }
               }}
             >
               View 3D Demo
             </Button>
+          </Box>
           </Box>
         </Box>
       </motion.div>
@@ -194,8 +229,11 @@ const HomePage = () => {
                 className="yantra-card"
                 sx={{
                   height: '100%',
-                  background: 'linear-gradient(145deg, rgba(45,24,16,0.95) 0%, rgba(31,22,17,0.98) 100%)',
-                  backdropFilter: 'blur(10px)',
+                  backgroundImage: 'url(/3.png)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  position: 'relative',
                   border: '1px solid rgba(212,175,55,0.2)',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease',
@@ -203,11 +241,22 @@ const HomePage = () => {
                     transform: 'translateY(-2px)',
                     border: '1px solid rgba(212,175,55,0.3)',
                     boxShadow: '0 12px 40px rgba(0,0,0,0.5)'
+                  },
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(145deg, rgba(45,24,16,0.85) 0%, rgba(31,22,17,0.90) 100%)',
+                    borderRadius: 'inherit',
+                    zIndex: 1
                   }
                 }}
                 onClick={feature.action}
               >
-                <CardContent sx={{ p: 3, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ p: 3, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 2 }}>
                   <Box sx={{ color: theme.palette.primary.main, mb: 2 }}>
                     {feature.icon}
                   </Box>

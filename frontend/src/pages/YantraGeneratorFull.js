@@ -125,6 +125,91 @@ const YantraGenerator = () => {
 
 
 
+  // Function to get detailed information about selected yantra
+  const getYantraInfo = (yantraId) => {
+    const yantraDetails = {
+      samrat_yantra: {
+        history: "Built by Maharaja Jai Singh II between 1724-1730 in his observatories across India. The largest sundial in the world, the Samrat Yantra at Jaipur stands 27 meters high and has a accuracy of 2 seconds.",
+        about: "The Samrat Yantra is essentially a giant sundial that can tell local time to an accuracy of about 2 seconds. Its triangular wall (gnomon) casts a shadow on the curved scale, indicating solar time. The instrument demonstrates the advanced astronomical knowledge of 18th-century India.",
+        construction: "Made of local stone and marble, with brass fittings for precision measurements. The gnomon is aligned with the Earth's axis, pointing towards the North Pole.",
+        significance: "Represents the pinnacle of pre-telescopic astronomical instrumentation and showcases India's contribution to observational astronomy."
+      },
+      rama_yantra: {
+        history: "Named after Lord Rama, this instrument was designed by Maharaja Jai Singh II as part of his comprehensive astronomical observatory system. Built in Jaipur and Delhi observatories in the early 18th century.",
+        about: "The Rama Yantra consists of two identical cylindrical structures used to measure the altitude and azimuth of celestial objects. It can track stars and planets throughout their journey across the sky.",
+        construction: "Two open cylindrical structures with graduated scales. Observers stand in the center to sight celestial objects and read measurements from the scaled walls.",
+        significance: "Demonstrates sophisticated understanding of spherical astronomy and celestial coordinate systems used for navigation and calendar calculations."
+      },
+      digamsa_yantra: {
+        history: "The Digamsa (direction measurement) Yantra was built as part of Jai Singh II's revolutionary approach to precise astronomical measurement, representing a fusion of Islamic and Hindu astronomical traditions.",
+        about: "Specifically designed to measure azimuth angles of celestial objects. This instrument helps determine the exact directional bearing of stars, planets, and the sun from the observer's position.",
+        construction: "Consists of a vertical circular wall with angular graduations and a central pillar for sighting. The instrument is precisely aligned with cardinal directions.",
+        significance: "Essential for navigation, determining prayer directions (Qibla), and understanding the movement patterns of celestial bodies."
+      },
+      dhruva_protha_chakra_yantra: {
+        history: "Named after Dhruva (Pole Star), this instrument was created to study the motion around the celestial pole. Built during the golden age of Indian astronomy in the 18th century.",
+        about: "Used to determine the position of the Pole Star and measure the latitude of the observation site. The instrument tracks the apparent rotation of stars around the celestial north pole.",
+        construction: "Features a circular ring structure aligned with the celestial pole, allowing observers to track polar star movements and determine geographical latitude.",
+        significance: "Crucial for navigation, geographical surveying, and understanding the Earth's rotational motion relative to celestial sphere."
+      },
+      yantra_samrat: {
+        history: "A revolutionary combination instrument created by Maharaja Jai Singh II, merging the precision of the Samrat Yantra with the polar measurements of the Dhruva-Protha-Chakra.",
+        about: "This hybrid instrument provides comprehensive astronomical measurements, combining solar time calculation with stellar position tracking. It represents the pinnacle of Jai Singh's innovative approach to astronomical instrumentation.",
+        construction: "Features both a large gnomon for solar measurements and polar alignment mechanisms for stellar observations, all integrated into a single sophisticated structure.",
+        significance: "Represents the evolution of astronomical instruments and the integration of multiple measurement techniques for comprehensive celestial observations."
+      },
+      golayantra_chakra_yantra: {
+        history: "Inspired by the ancient Indian concept of celestial spheres (Gola), this instrument was designed to model the three-dimensional movement of celestial objects on a two-dimensional surface.",
+        about: "The Golayantra Chakra is designed to represent the celestial sphere and track the movement of stars, planets, and other celestial bodies across the sky throughout the year.",
+        construction: "Consists of circular rings and spherical elements that model the celestial sphere, allowing observers to understand complex three-dimensional astronomical phenomena.",
+        significance: "Demonstrates ancient Indian understanding of spherical astronomy and the ability to model complex celestial mechanics using geometric instruments."
+      },
+      bhitti_yantra: {
+        history: "The wall sundial tradition in India dates back to ancient times, but Jai Singh's Bhitti Yantra represents a refined and enlarged version for enhanced accuracy and public use.",
+        about: "A wall-mounted sundial that displays local solar time throughout the day. The shadow cast by the gnomon moves across the graduated wall surface indicating hours and minutes.",
+        construction: "Built into or against a wall surface, with a triangular gnomon casting shadows on a graduated semicircular scale. Orientation and angle are precisely calculated for the local latitude.",
+        significance: "Made accurate timekeeping accessible to the general public and demonstrated the practical application of astronomical knowledge in daily life."
+      },
+      dakshinottara_bhitti_yantra: {
+        history: "This specialized wall sundial was designed to work specifically on north-south oriented walls, solving the challenge of timekeeping on differently oriented surfaces in Indian architecture.",
+        about: "A wall sundial specifically designed for north-south walls, providing accurate time measurements regardless of the wall's orientation. It showcases advanced understanding of solar geometry.",
+        construction: "Features specialized gnomon and scale arrangements adapted for north-south wall orientations, with mathematical corrections for accurate time display.",
+        significance: "Shows sophisticated understanding of solar geometry and the ability to adapt astronomical instruments to architectural constraints."
+      },
+      rasivalaya_yantra: {
+        history: "Built to track the twelve zodiacal signs (Rashi) and their influence on celestial events, representing the integration of astronomical observation with traditional Indian astrology.",
+        about: "The Rasivalaya Yantra is designed to track the sun's movement through the twelve zodiacal constellations throughout the year, essential for creating accurate calendars and astrological calculations.",
+        construction: "Features twelve separate structures, each representing one zodiacal sign, allowing precise tracking of the sun's annual journey through the zodiac.",
+        significance: "Bridges observational astronomy with traditional calendar systems and demonstrates the practical application of zodiacal knowledge in timekeeping."
+      },
+      nadi_valaya_yantra: {
+        history: "The ring dial concept has ancient origins, but Jai Singh's Nadi Valaya represents an enlarged and refined version for enhanced precision in time measurement.",
+        about: "A sophisticated ring sundial that can measure time with remarkable precision. The instrument uses the principle of the sun's shadow falling through a ring to indicate time on graduated scales.",
+        construction: "Consists of a large metal or stone ring with precise graduations, oriented and calibrated for the specific latitude of the observation site.",
+        significance: "Demonstrates mastery of portable sundial principles scaled up for permanent installation and community use."
+      },
+      palaka_yantra: {
+        history: "The board instrument represents one of the simpler yet effective designs in Jai Singh's observatory, focusing on practical astronomical computation and observation.",
+        about: "A flat board instrument with various scales and markings for astronomical calculations and measurements. It serves as a computational aid for complex astronomical problems.",
+        construction: "Features a flat surface with engraved scales, calculation aids, and measurement tools for various astronomical computations and observations.",
+        significance: "Shows the importance of computational tools in astronomical practice and represents the bridge between observation and mathematical analysis."
+      },
+      chaapa_yantra: {
+        history: "The arc instrument draws from ancient traditions of using curved surfaces for astronomical measurement, refined and enlarged by Jai Singh for enhanced accuracy.",
+        about: "An arc-shaped instrument designed to measure celestial coordinates with high precision. The curved structure allows for accurate measurement of angles and positions of celestial objects.",
+        construction: "Features a precisely constructed arc with detailed graduations, aligned for optimal measurement of celestial object positions and movements.",
+        significance: "Represents the geometric principles underlying celestial measurement and demonstrates the use of curved surfaces for enhanced precision in astronomical observation."
+      }
+    };
+
+    return yantraDetails[yantraId] || {
+      history: "Select a yantra to learn about its fascinating history and construction details.",
+      about: "Each yantra represents centuries of astronomical knowledge and engineering expertise.",
+      construction: "These instruments showcase the advanced understanding of mathematics and astronomy in ancient India.",
+      significance: "Jantar Mantar observatories stand as testimony to India's rich scientific heritage."
+    };
+  };
+
   const fetchAvailableYantras = async () => {
     // Define all 12 complete yantra types
     const completeYantraList = [
@@ -657,8 +742,8 @@ const YantraGenerator = () => {
           )}
         </Grid>
 
-        {/* Main Content Area */}
-        <Grid item xs={12} lg={9}>
+        {/* Main Visualization Area */}
+        <Grid item xs={12} lg={6}>
           <Card sx={{ height: '800px' }}>
             <CardContent sx={{ p: 3, height: '100%' }}>
               <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
@@ -964,6 +1049,121 @@ const YantraGenerator = () => {
                       </Typography>
                     </Box>
                   )}
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* History and Information Panel */}
+        <Grid item xs={12} lg={3}>
+          <Card sx={{ height: '800px', overflow: 'auto' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#D4AF37' }}>
+                <Timeline color="primary" />
+                Yantra Information
+              </Typography>
+              
+              {selectedYantra ? (
+                <Box>
+                  {/* Selected Yantra Title */}
+                  <Box sx={{ mb: 3, p: 2, bgcolor: 'rgba(212, 175, 55, 0.1)', borderRadius: 2, border: '1px solid #D4AF37' }}>
+                    <Typography variant="h6" sx={{ color: '#D4AF37', fontWeight: 'bold' }}>
+                      {availableYantras.find(y => y.id === selectedYantra)?.name || selectedYantra}
+                    </Typography>
+                  </Box>
+
+                  {/* History Section */}
+                  <Accordion defaultExpanded>
+                    <AccordionSummary expandIcon={<ExpandMore />}>
+                      <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
+                        📚 Historical Background
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Typography variant="body2" sx={{ lineHeight: 1.6, textAlign: 'justify' }}>
+                        {getYantraInfo(selectedYantra).history}
+                      </Typography>
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* About Section */}
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMore />}>
+                      <Typography variant="h6" sx={{ color: 'secondary.main', fontWeight: 'bold' }}>
+                        🔬 About This Instrument
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Typography variant="body2" sx={{ lineHeight: 1.6, textAlign: 'justify' }}>
+                        {getYantraInfo(selectedYantra).about}
+                      </Typography>
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* Construction Section */}
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMore />}>
+                      <Typography variant="h6" sx={{ color: '#D4AF37', fontWeight: 'bold' }}>
+                        🏗️ Construction Details
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Typography variant="body2" sx={{ lineHeight: 1.6, textAlign: 'justify' }}>
+                        {getYantraInfo(selectedYantra).construction}
+                      </Typography>
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* Significance Section */}
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMore />}>
+                      <Typography variant="h6" sx={{ color: 'error.main', fontWeight: 'bold' }}>
+                        ⭐ Historical Significance
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Typography variant="body2" sx={{ lineHeight: 1.6, textAlign: 'justify' }}>
+                        {getYantraInfo(selectedYantra).significance}
+                      </Typography>
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {/* Quick Facts */}
+                  <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1, color: 'primary.main' }}>
+                      ⚡ Quick Facts
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                      • Built in the 18th century (1724-1730)
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                      • Created by Maharaja Jai Singh II
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                      • Part of Jantar Mantar observatories
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'block' }}>
+                      • UNESCO World Heritage Site
+                    </Typography>
+                  </Box>
+                </Box>
+              ) : (
+                <Box sx={{ 
+                  height: '600px', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  textAlign: 'center'
+                }}>
+                  <Timeline sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary" gutterBottom>
+                    Select a Yantra Type
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Choose a yantra from the dropdown to learn about its fascinating history, construction details, and significance in Indian astronomy.
+                  </Typography>
                 </Box>
               )}
             </CardContent>

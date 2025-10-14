@@ -404,6 +404,7 @@ const YantraGenerator = () => {
                     PaperProps: {
                       style: {
                         maxHeight: 400,
+                        maxWidth: 500,
                         overflow: 'auto',
                       },
                     },
@@ -421,16 +422,43 @@ const YantraGenerator = () => {
                         wordWrap: 'break-word',
                         py: 1.5,
                         px: 2,
+                        minHeight: 'auto',
+                        height: 'auto',
+                        maxWidth: 480,
                         '&:hover': {
                           backgroundColor: 'rgba(212, 175, 55, 0.1)'
                         }
                       }}
                     >
-                      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-                        <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#D4AF37' }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        width: '100%',
+                        maxWidth: 450,
+                        overflow: 'hidden'
+                      }}>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontWeight: 'bold', 
+                            color: '#D4AF37',
+                            wordBreak: 'break-word',
+                            hyphens: 'auto',
+                            lineHeight: 1.3
+                          }}
+                        >
                           {yantra.name}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            color: 'text.secondary', 
+                            mt: 0.5,
+                            wordBreak: 'break-word',
+                            hyphens: 'auto',
+                            lineHeight: 1.2
+                          }}
+                        >
                           {yantra.description}
                         </Typography>
                       </Box>
@@ -440,13 +468,6 @@ const YantraGenerator = () => {
               </FormControl>
 
 
-
-              {/* Debug Info */}
-              {selectedYantra && (
-                <Alert severity="info" sx={{ mb: 3, fontSize: '0.9rem' }}>
-                  <strong>Debug:</strong> Yantra: {selectedYantra}
-                </Alert>
-              )}
 
               {/* Location Presets */}
               <Box sx={{ mb: 3 }}>

@@ -38,16 +38,16 @@ const HomePage = () => {
       action: () => navigate('/visualization')
     },
     {
+      icon: <School fontSize="large" />,
+      title: 'Learn About Yantras',
+      description: 'Explore how yantras work with detailed formulas, images, and blueprints',
+      action: () => navigate('/learn')
+    },
+    {
       icon: <Science fontSize="large" />,
       title: 'AI Manuscript Decoder',
       description: 'Convert ancient texts to mathematical formulas using AI',
-      action: () => navigate('/docs')
-    },
-    {
-      icon: <School fontSize="large" />,
-      title: 'Educational Platform',
-      description: 'Learn ancient Indian astronomy through modern technology',
-      action: () => navigate('/docs')
+      action: () => navigate('/ai')
     },
     {
       icon: <Timeline fontSize="large" />,

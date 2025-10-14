@@ -8,6 +8,7 @@ import AIManuscriptDecoder from './pages/AIManuscriptDecoder';
 import ARExperience from './pages/VRExperience';
 import Documentation from './pages/Documentation';
 import About from './pages/About';
+import Learn from './pages/Learn';
 import Footer from './components/Footer';
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
           <Route path="/ai" element={<AIManuscriptDecoder />} />
           <Route path="/ar" element={<ARExperience />} />
           <Route path="/docs" element={<Documentation />} />
+          <Route path="/learn" element={<Learn />} />
           <Route path="/visualization" element={<YantraGenerator />} />
           <Route path="/about" element={<About />} />
         </Routes>

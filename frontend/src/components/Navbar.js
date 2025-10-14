@@ -48,6 +48,7 @@ const Navbar = () => {
   const navItems = [
     { label: 'Home', path: '/' },
     { label: 'Generator', path: '/generator' },
+    { label: 'Learn', path: '/learn' },
     { label: 'AI Decoder', path: '/ai' },
     { label: 'VR Experience', path: '/ar' },
     { label: 'Documentation', path: '/docs' },

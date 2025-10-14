@@ -368,6 +368,55 @@ const YantraGenerator = () => {
     }
   };
 
+  const handleCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by this browser.');
+      setTimeout(() => setError(''), 5000);
+      return;
+    }
+
+    setLoading(true);
+    setSuccess('Getting your current location...');
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setCoordinates({
+          latitude: latitude.toFixed(6),
+          longitude: longitude.toFixed(6)
+        });
+        setLoading(false);
+        setSuccess(`📍 Current location detected: ${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E`);
+        setTimeout(() => setSuccess(''), 5000);
+      },
+      (error) => {
+        setLoading(false);
+        let errorMessage = 'Unable to retrieve your location. ';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'Location access was denied by user.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'Location request timed out.';
+            break;
+          default:
+            errorMessage += 'An unknown error occurred.';
+            break;
+        }
+        setError(errorMessage);
+        setTimeout(() => setError(''), 7000);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // 5 minutes
+      }
+    );
+  };
+
   // Helper function to convert full yantra name to short format for 3D viewer
   const getShortYantraType = (fullType) => {
     return fullType.replace('_yantra', '');
@@ -472,6 +521,31 @@ const YantraGenerator = () => {
               {/* Location Presets */}
               <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" gutterBottom>Quick Locations:</Typography>
+                
+                {/* Current Location Button */}
+                <Box sx={{ mb: 2 }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={handleCurrentLocation}
+                    disabled={loading}
+                    sx={{ 
+                      mb: 1,
+                      backgroundColor: '#D4AF37',
+                      '&:hover': {
+                        backgroundColor: '#B8941F'
+                      },
+                      '&:disabled': {
+                        backgroundColor: 'rgba(212, 175, 55, 0.3)'
+                      }
+                    }}
+                    startIcon={loading ? <CircularProgress size={16} /> : '📍'}
+                  >
+                    {loading ? 'Getting Location...' : 'Use Current Location'}
+                  </Button>
+                </Box>
+
+                {/* City Presets */}
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {['delhi', 'mumbai', 'jaipur', 'bengaluru', 'ujjain', 'varanasi', 'mathura'].map((city) => (
                     <Chip

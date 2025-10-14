@@ -1912,6 +1912,27 @@ const Learn = () => {
                 </Box>
               </CardContent>
             </Card>
+
+            {/* Use Cases Section */}
+            <Card elevation={4} sx={{ mt: 3, borderRadius: 2 }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Image sx={{ mr: 1, color: '#d4af37' }} />
+                  <Typography variant="h6" fontWeight="bold">
+                    Applications & Use Cases
+                  </Typography>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                
+                <Box component="ul" sx={{ pl: 2 }}>
+                  {currentYantra.useCases.map((useCase, index) => (
+                    <Typography component="li" key={index} variant="body2" paragraph>
+                      {useCase}
+                    </Typography>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
           </motion.div>
         </Grid>
 
@@ -2063,27 +2084,6 @@ const Learn = () => {
                 >
                   Download Detailed Blueprint (PDF/CAD)
                 </Button>
-              </CardContent>
-            </Card>
-
-            {/* Use Cases Section */}
-            <Card elevation={4} sx={{ borderRadius: 2 }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Image sx={{ mr: 1, color: '#d4af37' }} />
-                  <Typography variant="h6" fontWeight="bold">
-                    Applications & Use Cases
-                  </Typography>
-                </Box>
-                <Divider sx={{ mb: 2 }} />
-                
-                <Box component="ul" sx={{ pl: 2 }}>
-                  {currentYantra.useCases.map((useCase, index) => (
-                    <Typography component="li" key={index} variant="body2" paragraph>
-                      {useCase}
-                    </Typography>
-                  ))}
-                </Box>
               </CardContent>
             </Card>
           </motion.div>

@@ -1,7 +1,7 @@
-# YANTRA.AI - Ancient Indian Astronomical Instruments Generator
+# DIGIYANTRA - Ancient Indian Astronomical Instruments Generator
 
 ## Project Overview
-YANTRA.AI is an innovative system that revives ancient Indian astronomy through AI and computational geometry. It generates geometric dimensions of astronomical instruments (yantras) for any latitude and longitude.
+DIGIYANTRA is an innovative system that revives ancient Indian astronomy through AI and computational geometry. It generates geometric dimensions of astronomical instruments (yantras) for any latitude and longitude.
 
 ## Project Structure
 - `/backend` - Python-based parametric geometry engine

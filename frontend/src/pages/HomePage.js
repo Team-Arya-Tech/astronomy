@@ -116,7 +116,7 @@ const HomePage = () => {
               letterSpacing: '0.1em'
             }}
           >
-            YANTRA.AI
+            DIGIYANTRA
           </Typography>
           
           <Typography

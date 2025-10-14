@@ -1,5 +1,5 @@
 """
-YANTRA.AI - Complete Mathematical Implementation Test
+DIGIYANTRA - Complete Mathematical Implementation Test
 Tests all the precise astronomical formulas and geometric calculations
 """
 
@@ -334,7 +334,7 @@ def test_accuracy_verification():
 def run_comprehensive_test():
     """Run all tests to verify mathematical implementation"""
     
-    print("YANTRA.AI - COMPREHENSIVE MATHEMATICAL IMPLEMENTATION TEST")
+    print("DIGIYANTRA - COMPREHENSIVE MATHEMATICAL IMPLEMENTATION TEST")
     print("Testing all formulas from your detailed specification")
     print("=" * 80)
     

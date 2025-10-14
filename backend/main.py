@@ -1,5 +1,5 @@
 """
-YANTRA.AI FastAPI Backend
+DIGIYANTRA FastAPI Backend
 RESTful API for the parametric geometry engine
 """
 
@@ -17,7 +17,7 @@ from parametric_engine import ParametricGeometryEngine, Coordinates, YantraSpecs
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="YANTRA.AI API",
+    title="DIGIYANTRA API",
     description="Ancient Indian Astronomical Instruments Generator",
     version="1.0.0"
 )
@@ -66,7 +66,7 @@ class YantraResponse(BaseModel):
 async def root():
     """Root endpoint with API information"""
     return {
-        "message": "Welcome to YANTRA.AI - Ancient Indian Astronomical Instruments Generator",
+        "message": "Welcome to DIGIYANTRA - Ancient Indian Astronomical Instruments Generator",
         "version": "1.0.0",
         "docs": "/docs",
         "available_yantras": [

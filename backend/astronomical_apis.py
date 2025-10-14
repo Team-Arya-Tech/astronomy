@@ -1,5 +1,5 @@
 """
-YANTRA.AI - Astronomical APIs Integration
+DIGIYANTRA - Astronomical APIs Integration
 Real-time sky data integration with Skyfield, NASA JPL, and other astronomical services
 """
 

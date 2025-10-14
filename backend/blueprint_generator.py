@@ -1,5 +1,5 @@
 """
-YANTRA.AI - Comprehensive Blueprint Generator
+DIGIYANTRA - Comprehensive Blueprint Generator
 Creates construction-ready technical drawings using precise ray-intersection calculations
 Integrates with YantraGeometryEngine for accurate hour lines and shadow calculations
 """
@@ -1242,7 +1242,7 @@ class YantraBlueprintGenerator:
         story = []
         
         # Title page
-        story.append(Paragraph("YANTRA.AI", title_style))
+        story.append(Paragraph("DIGIYANTRA", title_style))
         story.append(Paragraph("Ancient Indian Astronomical Instrument", styles['Heading2']))
         story.append(Paragraph(f"Construction Blueprint for {specs['name']}", styles['Heading3']))
         story.append(Spacer(1, 20))
@@ -1259,7 +1259,7 @@ class YantraBlueprintGenerator:
             ['Latitude', f"{lat:.4f}°"],
             ['Longitude', f"{lon:.4f}°"],
             ['Elevation', f"{elev:.1f}m"],
-            ['Generated', 'YANTRA.AI System']
+            ['Generated', 'DIGIYANTRA System']
         ]
         
         location_table = Table(location_data)

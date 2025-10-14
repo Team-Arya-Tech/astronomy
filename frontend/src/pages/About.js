@@ -5,7 +5,7 @@ const About = () => (
   <Container maxWidth="md" sx={{ py: 6 }}>
     <Paper elevation={3} sx={{ p: 4, borderRadius: 4, background: 'linear-gradient(135deg, #1a0f0a 0%, #2d1810 100%)', color: '#F5E6D3' }}>
       <Typography variant="h2" gutterBottom sx={{ fontWeight: 700, color: '#D4AF37' }}>
-        About YANTRA.AI
+        About DIGIYANTRA
       </Typography>
       <Typography variant="body1" sx={{ fontSize: '1.2rem', lineHeight: 1.8 }}>
         <strong>Problem Statement:</strong> Instruments in Observational Astronomy<br /><br />

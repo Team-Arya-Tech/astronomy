@@ -1,4 +1,4 @@
-# 🌌 YANTRA.AI - Reviving Indian Astronomy through Parametric Design & AI
+# 🌌 DIGIYANTRA - Reviving Indian Astronomy through Parametric Design & AI
 
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://python.org)
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org)
@@ -10,7 +10,7 @@ Generate geometric dimensions of ancient Indian astronomical instruments (yantra
 
 ## 💡 Core Innovation
 
-**YANTRA.AI** is a generative design system that uses **AI + parametric geometry** to automatically generate, visualize, and simulate ancient Indian astronomical instruments like Samrat Yantra, Rama Yantra, and others for any geographical coordinates.
+**DIGIYANTRA** is a generative design system that uses **AI + parametric geometry** to automatically generate, visualize, and simulate ancient Indian astronomical instruments like Samrat Yantra, Rama Yantra, and others for any geographical coordinates.
 
 ### Key Features:
 - 🔢 **Parametric Geometry Engine** - Dynamic dimension generation based on latitude/longitude
@@ -23,7 +23,7 @@ Generate geometric dimensions of ancient Indian astronomical instruments (yantra
 ## 🏗️ Project Structure
 
 ```
-YANTRA.AI/
+DIGIYANTRA/
 ├── backend/              # Python parametric geometry engine
 │   ├── yantras/         # Individual yantra calculators
 │   ├── calculations/    # Core mathematical functions

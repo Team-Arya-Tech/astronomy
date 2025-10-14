@@ -83,7 +83,7 @@ const Navbar = () => {
             }}
             onClick={() => navigate('/')}
           >
-            YANTRA.AI
+            DIGIYANTRA
           </Typography>
           <Typography
             variant="body2"

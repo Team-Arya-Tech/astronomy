@@ -1,5 +1,5 @@
 """
-YANTRA.AI - Parametric Geometry Engine
+DIGIYANTRA - Parametric Geometry Engine
 Core mathematical calculations for ancient Indian astronomical instruments
 """
 

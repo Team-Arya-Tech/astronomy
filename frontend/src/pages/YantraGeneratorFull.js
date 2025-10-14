@@ -34,6 +34,17 @@ import {
 import YantraViewer3D from '../components/YantraViewer3DAdvanced';
 import YantraViewer2D from '../components/YantraViewer2D';
 
+// Add CSS animation for marker bounce effect
+const markerStyles = document.createElement('style');
+markerStyles.textContent = `
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: rotate(-45deg) translateY(0); }
+    40% { transform: rotate(-45deg) translateY(-10px); }
+    60% { transform: rotate(-45deg) translateY(-5px); }
+  }
+`;
+document.head.appendChild(markerStyles);
+
 const YantraGenerator = () => {
   const [coordinates, setCoordinates] = useState({
     latitude: '',
@@ -49,6 +60,8 @@ const YantraGenerator = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState(0);
+  const [mapCenter, setMapCenter] = useState({ lat: 28.6139, lng: 77.2090 });
+  const [clickMarker, setClickMarker] = useState(null);
   const [astronomicalData, setAstronomicalData] = useState(null);
   const [exportLoading, setExportLoading] = useState(false);
 
@@ -63,6 +76,59 @@ const YantraGenerator = () => {
       fetchAvailableReferences(selectedYantra);
     }
   }, [selectedYantra]);
+
+  // Update map center when coordinates change
+  useEffect(() => {
+    if (coordinates.latitude && coordinates.longitude) {
+      setMapCenter({
+        lat: parseFloat(coordinates.latitude),
+        lng: parseFloat(coordinates.longitude)
+      });
+      // Clear click marker when coordinates change programmatically
+      setClickMarker(null);
+    }
+  }, [coordinates.latitude, coordinates.longitude]);
+
+  // Function to handle map clicks with better coordinate calculation
+  const handleMapClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Store click position for marker
+    setClickMarker({ x: x, y: y });
+    
+    // More accurate coordinate conversion
+    const mapWidth = rect.width;
+    const mapHeight = rect.height;
+    
+    // Use current map center and zoom level for calculation
+    const zoom = 12; // Approximate zoom level
+    const metersPerPixel = 156543.03392 * Math.cos(mapCenter.lat * Math.PI / 180) / Math.pow(2, zoom);
+    
+    // Calculate offset from center in meters
+    const centerX = mapWidth / 2;
+    const centerY = mapHeight / 2;
+    const offsetX = (x - centerX) * metersPerPixel;
+    const offsetY = (centerY - y) * metersPerPixel;
+    
+    // Convert meters to degrees (approximate)
+    const latOffset = offsetY / 111320; // meters per degree latitude
+    const lngOffset = offsetX / (111320 * Math.cos(mapCenter.lat * Math.PI / 180));
+    
+    const newLat = mapCenter.lat + latOffset;
+    const newLng = mapCenter.lng + lngOffset;
+    
+    // Update coordinates
+    setCoordinates(prev => ({
+      ...prev,
+      latitude: newLat.toFixed(6),
+      longitude: newLng.toFixed(6)
+    }));
+    
+    setSuccess(`📍 Location selected: ${newLat.toFixed(4)}°N, ${newLng.toFixed(4)}°E`);
+    setTimeout(() => setSuccess(''), 3000);
+  };
 
   const fetchAvailableReferences = async (yantraType) => {
     try {
@@ -217,9 +283,17 @@ const YantraGenerator = () => {
       delhi: { latitude: '28.6139', longitude: '77.2090', elevation: '216' },
       mumbai: { latitude: '19.0760', longitude: '72.8777', elevation: '14' },
       jaipur: { latitude: '26.9124', longitude: '75.7873', elevation: '431' },
-      bengaluru: { latitude: '12.9716', longitude: '77.5946', elevation: '920' }
+      bengaluru: { latitude: '12.9716', longitude: '77.5946', elevation: '920' },
+      ujjain: { latitude: '23.1765', longitude: '75.7885', elevation: '494' },
+      varanasi: { latitude: '25.3176', longitude: '82.9739', elevation: '81' },
+      mathura: { latitude: '27.4924', longitude: '77.6737', elevation: '174' }
     };
-    setCoordinates(presets[preset]);
+    const selectedPreset = presets[preset];
+    if (selectedPreset) {
+      setCoordinates(selectedPreset);
+      setSuccess(`Location set to ${preset.charAt(0).toUpperCase() + preset.slice(1)}`);
+      setTimeout(() => setSuccess(''), 3000);
+    }
   };
 
   // Helper function to convert full yantra name to short format for 3D viewer
@@ -295,7 +369,7 @@ const YantraGenerator = () => {
               <Box sx={{ mb: 3 }}>
                 <Typography variant="subtitle2" gutterBottom>Quick Locations:</Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {['delhi', 'mumbai', 'jaipur', 'bengaluru'].map((city) => (
+                  {['delhi', 'mumbai', 'jaipur', 'bengaluru', 'ujjain', 'varanasi', 'mathura'].map((city) => (
                     <Chip
                       key={city}
                       label={city.charAt(0).toUpperCase() + city.slice(1)}
@@ -332,6 +406,154 @@ const YantraGenerator = () => {
                   sx={{ mb: 2 }}
                   helperText="Longitude in decimal degrees (-180 to 180)"
                 />
+
+              {/* Interactive Clickable Map */}
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom sx={{ color: '#D4AF37' }}>
+                  📍 Interactive Location Selector
+                </Typography>
+                <Paper 
+                  elevation={3} 
+                  sx={{ 
+                    height: '450px', 
+                    borderRadius: 2, 
+                    overflow: 'hidden',
+                    border: '2px solid #D4AF37',
+                    position: 'relative'
+                  }}
+                >
+                  {/* Interactive OpenStreetMap with click functionality */}
+                  <div
+                    id="interactive-map"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      background: '#f0f0f0',
+                      position: 'relative',
+                      cursor: 'crosshair'
+                    }}
+                  >
+                    {/* Map iframe with interaction overlay */}
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      style={{ border: 0, position: 'absolute', top: 0, left: 0 }}
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapCenter.lng-0.1},${mapCenter.lat-0.1},${mapCenter.lng+0.1},${mapCenter.lat+0.1}&layer=mapnik&marker=${mapCenter.lat},${mapCenter.lng}`}
+                      title="Interactive Location Map"
+                    />
+                    
+                    {/* Click overlay to capture map clicks */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        zIndex: 100,
+                        cursor: 'crosshair'
+                      }}
+                      onClick={handleMapClick}
+                      onMouseMove={(e) => {
+                        // Add hover effect for better UX
+                        e.currentTarget.style.opacity = '0.1';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = '0';
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        zIndex: 100,
+                        cursor: 'crosshair',
+                        backgroundColor: 'rgba(212, 175, 55, 0)',
+                        transition: 'background-color 0.2s ease'
+                      }}
+                    />
+                    
+                    {/* Visual marker for clicked location */}
+                    {clickMarker && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: clickMarker.x - 8,
+                          top: clickMarker.y - 16,
+                          width: '16px',
+                          height: '16px',
+                          backgroundColor: '#ff4444',
+                          border: '2px solid white',
+                          borderRadius: '50% 50% 50% 0',
+                          transform: 'rotate(-45deg)',
+                          zIndex: 150,
+                          pointerEvents: 'none',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
+                          animation: 'bounce 0.5s ease-in-out'
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '2px',
+                            left: '2px',
+                            width: '8px',
+                            height: '8px',
+                            backgroundColor: 'white',
+                            borderRadius: '50%'
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Current location overlay */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 10,
+                      left: 10,
+                      bgcolor: 'rgba(0, 0, 0, 0.85)',
+                      color: 'white',
+                      p: 1.5,
+                      borderRadius: 1,
+                      fontSize: '0.875rem',
+                      zIndex: 200,
+                      minWidth: '180px'
+                    }}
+                  >
+                    <Typography variant="caption" display="block" sx={{ fontWeight: 'bold', color: '#D4AF37' }}>
+                      📍 Selected Location
+                    </Typography>
+                    <Typography variant="caption" display="block">
+                      Lat: {coordinates.latitude || 'Click to select'}
+                    </Typography>
+                    <Typography variant="caption" display="block">
+                      Lng: {coordinates.longitude || 'Click to select'}
+                    </Typography>
+                  </Box>
+
+                  {/* Click instruction overlay */}
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: 10,
+                      right: 10,
+                      bgcolor: 'rgba(212, 175, 55, 0.9)',
+                      color: 'black',
+                      p: 1,
+                      borderRadius: 1,
+                      fontSize: '0.75rem',
+                      zIndex: 200
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                      🖱️ Click anywhere to select
+                    </Typography>
+                  </Box>
+                </Paper>
+              </Box>
                 
                 <TextField
                   fullWidth
@@ -344,6 +566,8 @@ const YantraGenerator = () => {
                   helperText="Elevation above sea level in meters"
                 />
               </Box>
+
+
               
               <Button
                 fullWidth

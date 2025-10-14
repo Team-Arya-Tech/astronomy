@@ -126,22 +126,41 @@ const YantraGenerator = () => {
 
 
   const fetchAvailableYantras = async () => {
+    // Define all 12 complete yantra types
+    const completeYantraList = [
+      { id: 'samrat_yantra', name: 'Samrat Yantra', description: 'The great sundial - most accurate timekeeping instrument' },
+      { id: 'rama_yantra', name: 'Rama Yantra', description: 'Cylindrical instrument for measuring altitude and azimuth' },
+      { id: 'digamsa_yantra', name: 'Digamsa Yantra', description: 'Azimuth measuring instrument for directional calculations' },
+      { id: 'dhruva_protha_chakra_yantra', name: 'Dhruva-Protha-Chakra Yantra', description: 'Pole circle instrument for latitude and celestial navigation' },
+      { id: 'yantra_samrat', name: 'Yantra-Samrat (Combination of Samrat Yantra and Dhruva-Protha-Chakra Yantra)', description: 'Combined instrument for comprehensive astronomical measurements' },
+      { id: 'golayantra_chakra_yantra', name: 'Golayantra Chakra Yantra', description: 'Spherical ring instrument for celestial sphere calculations' },
+      { id: 'bhitti_yantra', name: 'Bhitti Yantra', description: 'Wall-mounted sundial for local time measurements' },
+      { id: 'dakshinottara_bhitti_yantra', name: 'Dakshinottara Bhitti Yantra', description: 'North-South wall sundial for meridian observations' },
+      { id: 'rasivalaya_yantra', name: 'Rasivalaya Yantra', description: 'Zodiacal instrument for tracking celestial movements' },
+      { id: 'nadi_valaya_yantra', name: 'Nadi Valaya Yantra', description: 'Ring dial instrument for precise time calculations' },
+      { id: 'palaka_yantra', name: 'Palaka Yantra', description: 'Board instrument for astronomical computations' },
+      { id: 'chaapa_yantra', name: 'Chaapa Yantra', description: 'Arc instrument for measuring celestial coordinates' }
+    ];
+
     try {
       const response = await fetch('http://localhost:8000/yantras/available');
       const data = await response.json();
-      setAvailableYantras(data.yantras);
+      
+      // If API returns data, merge with our complete list to ensure all 12 are available
+      if (data.yantras && data.yantras.length > 0) {
+        // Use API data but ensure we have all 12 yantras
+        const apiYantras = data.yantras;
+        const mergedYantras = completeYantraList.map(defaultYantra => {
+          const apiYantra = apiYantras.find(y => y.id === defaultYantra.id);
+          return apiYantra || defaultYantra;
+        });
+        setAvailableYantras(mergedYantras);
+      } else {
+        setAvailableYantras(completeYantraList);
+      }
     } catch (err) {
-      console.log('Using default yantra types');
-      setAvailableYantras([
-        { id: 'samrat_yantra', name: 'Samrat Yantra (Great Sundial)', description: 'The largest and most accurate sundial for local solar time' },
-        { id: 'rama_yantra', name: 'Rama Yantra (Cylindrical)', description: 'Cylindrical instrument for measuring altitude and azimuth' },
-        { id: 'jai_prakash_yantra', name: 'Jai Prakash Yantra', description: 'Hemispherical sundial for celestial coordinate measurement' },
-        { id: 'digamsa_yantra', name: 'Digamsa Yantra', description: 'Azimuth-altitude measuring instrument' },
-        { id: 'dhruva_protha_chakra', name: 'Dhruva-Protha-Chakra', description: 'Pole circle for latitude determination' },
-        { id: 'kapala_yantra', name: 'Kapala Yantra', description: 'Bowl sundial for time measurement' },
-        { id: 'chakra_yantra', name: 'Chakra Yantra', description: 'Ring dial for solar observations' },
-        { id: 'unnatamsa_yantra', name: 'Unnatamsa Yantra', description: 'Solar altitude measuring instrument' }
-      ]);
+      console.log('Using complete default yantra types (all 12)');
+      setAvailableYantras(completeYantraList);
     }
   };
 
@@ -296,13 +315,40 @@ const YantraGenerator = () => {
                   value={selectedYantra}
                   onChange={(e) => setSelectedYantra(e.target.value)}
                   label="Yantra Type"
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 400,
+                        overflow: 'auto',
+                      },
+                    },
+                  }}
                 >
                   <MenuItem value="">
                     <em>Select a Yantra Type</em>
                   </MenuItem>
                   {availableYantras.map((yantra) => (
-                    <MenuItem key={yantra.id} value={yantra.id}>
-                      {yantra.name}
+                    <MenuItem 
+                      key={yantra.id} 
+                      value={yantra.id}
+                      sx={{
+                        whiteSpace: 'normal',
+                        wordWrap: 'break-word',
+                        py: 1.5,
+                        px: 2,
+                        '&:hover': {
+                          backgroundColor: 'rgba(212, 175, 55, 0.1)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                        <Typography variant="body1" sx={{ fontWeight: 'bold', color: '#D4AF37' }}>
+                          {yantra.name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                          {yantra.description}
+                        </Typography>
+                      </Box>
                     </MenuItem>
                   ))}
                 </Select>

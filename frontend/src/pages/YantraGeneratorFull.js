@@ -48,12 +48,9 @@ document.head.appendChild(markerStyles);
 const YantraGenerator = () => {
   const [coordinates, setCoordinates] = useState({
     latitude: '',
-    longitude: '',
-    elevation: '0'
+    longitude: ''
   });
   const [selectedYantra, setSelectedYantra] = useState('');
-  const [selectedReference, setSelectedReference] = useState('jaipur');
-  const [availableReferences, setAvailableReferences] = useState({});
   const [yantraSpecs, setYantraSpecs] = useState(null);
   const [availableYantras, setAvailableYantras] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -71,11 +68,7 @@ const YantraGenerator = () => {
   }, []);
 
   // Fetch available references when yantra type changes
-  useEffect(() => {
-    if (selectedYantra) {
-      fetchAvailableReferences(selectedYantra);
-    }
-  }, [selectedYantra]);
+
 
   // Update map center when coordinates change
   useEffect(() => {
@@ -130,29 +123,7 @@ const YantraGenerator = () => {
     setTimeout(() => setSuccess(''), 3000);
   };
 
-  const fetchAvailableReferences = async (yantraType) => {
-    try {
-      console.log('Fetching references for:', yantraType);
-      const response = await fetch(`http://localhost:8000/yantras/${yantraType}/references`);
-      const data = await response.json();
-      console.log('References response:', data);
-      setAvailableReferences(data.references || {});
-      // Set default reference to first available
-      const firstRef = Object.keys(data.references || {})[0];
-      if (firstRef) {
-        setSelectedReference(firstRef);
-      }
-    } catch (err) {
-      console.error('Error fetching references:', err);
-      // Set fallback references
-      setAvailableReferences({
-        jaipur: { name: 'Jaipur', latitude: 26.91, longitude: 75.79, elevation: 431 },
-        delhi: { name: 'Delhi', latitude: 28.61, longitude: 77.21, elevation: 216 },
-        ujjain: { name: 'Ujjain', latitude: 23.18, longitude: 75.79, elevation: 492 }
-      });
-      setSelectedReference('jaipur');
-    }
-  };
+
 
   const fetchAvailableYantras = async () => {
     try {
@@ -196,11 +167,9 @@ const YantraGenerator = () => {
         body: JSON.stringify({
           coordinates: {
             latitude: parseFloat(coordinates.latitude),
-            longitude: parseFloat(coordinates.longitude),
-            elevation: parseFloat(coordinates.elevation)
+            longitude: parseFloat(coordinates.longitude)
           },
           yantra_type: selectedYantra,
-          reference_location: selectedReference || 'jaipur',
           scale_factor: 1.0
         })
       });
@@ -234,7 +203,6 @@ const YantraGenerator = () => {
         body: JSON.stringify({
           latitude: parseFloat(coordinates.latitude),
           longitude: parseFloat(coordinates.longitude),
-          elevation: parseFloat(coordinates.elevation),
           datetime: new Date().toISOString()
         })
       });
@@ -251,7 +219,7 @@ const YantraGenerator = () => {
   const exportBlueprint = async (format = 'blueprint') => {
     setExportLoading(true);
     try {
-      const url = `http://localhost:8000/yantras/export/${selectedYantra}?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&elevation=${coordinates.elevation}&format=${format}&reference_location=${selectedReference}`;
+      const url = `http://localhost:8000/yantras/export/${selectedYantra}?latitude=${coordinates.latitude}&longitude=${coordinates.longitude}&format=${format}`;
       
       if (format === 'pdf' || format === 'svg') {
         // For binary formats, download directly
@@ -260,7 +228,7 @@ const YantraGenerator = () => {
         const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = downloadUrl;
-        link.download = `yantra_${selectedYantra}_${selectedReference}.${format}`;
+        link.download = `yantra_${selectedYantra}.${format}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -280,13 +248,13 @@ const YantraGenerator = () => {
 
   const handleLocationPreset = (preset) => {
     const presets = {
-      delhi: { latitude: '28.6139', longitude: '77.2090', elevation: '216' },
-      mumbai: { latitude: '19.0760', longitude: '72.8777', elevation: '14' },
-      jaipur: { latitude: '26.9124', longitude: '75.7873', elevation: '431' },
-      bengaluru: { latitude: '12.9716', longitude: '77.5946', elevation: '920' },
-      ujjain: { latitude: '23.1765', longitude: '75.7885', elevation: '494' },
-      varanasi: { latitude: '25.3176', longitude: '82.9739', elevation: '81' },
-      mathura: { latitude: '27.4924', longitude: '77.6737', elevation: '174' }
+      delhi: { latitude: '28.6139', longitude: '77.2090' },
+      mumbai: { latitude: '19.0760', longitude: '72.8777' },
+      jaipur: { latitude: '26.9124', longitude: '75.7873' },
+      bengaluru: { latitude: '12.9716', longitude: '77.5946' },
+      ujjain: { latitude: '23.1765', longitude: '75.7885' },
+      varanasi: { latitude: '25.3176', longitude: '82.9739' },
+      mathura: { latitude: '27.4924', longitude: '77.6737' }
     };
     const selectedPreset = presets[preset];
     if (selectedPreset) {
@@ -340,28 +308,12 @@ const YantraGenerator = () => {
                 </Select>
               </FormControl>
 
-              {/* Historical Reference Selection */}
-              {selectedYantra && (
-                <FormControl fullWidth sx={{ mb: 3 }}>
-                  <InputLabel>Historical Reference</InputLabel>
-                  <Select
-                    value={selectedReference}
-                    onChange={(e) => setSelectedReference(e.target.value)}
-                    label="Historical Reference"
-                  >
-                    {Object.entries(availableReferences).map(([key, ref]) => (
-                      <MenuItem key={key} value={key}>
-                        {ref.name} ({ref.latitude?.toFixed(1)}°N, {ref.longitude?.toFixed(1)}°E)
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
+
 
               {/* Debug Info */}
               {selectedYantra && (
                 <Alert severity="info" sx={{ mb: 3, fontSize: '0.9rem' }}>
-                  <strong>Debug:</strong> Yantra: {selectedYantra} | References: {Object.keys(availableReferences).length} | Selected: {selectedReference}
+                  <strong>Debug:</strong> Yantra: {selectedYantra}
                 </Alert>
               )}
 
@@ -554,17 +506,6 @@ const YantraGenerator = () => {
                   </Box>
                 </Paper>
               </Box>
-                
-                <TextField
-                  fullWidth
-                  label="Elevation (meters)"
-                  value={coordinates.elevation}
-                  onChange={handleInputChange('elevation')}
-                  placeholder="e.g. 216 (Delhi)"
-                  type="number"
-                  inputProps={{ step: "any", min: 0 }}
-                  helperText="Elevation above sea level in meters"
-                />
               </Box>
 
 

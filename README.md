@@ -27,6 +27,7 @@ Ancient Indian astronomical instruments (yantras) were marvels of precision engi
 - **Parametric geometry engine** for dynamic calculations
 - **3D visualization and simulation** of celestial mechanics
 - **Interactive learning platform** for heritage science education
+- **Virtual tour experiences** of all 5 Jantar Mantar observatories
 
 ## 📸 Application Screenshots
 
@@ -171,6 +172,13 @@ Educational Precision = Standard Precision / 2
 - **Camera controls** (zoom, pan, rotate) for detailed inspection
 - **WebGL optimization** for smooth performance
 
+### 🚶 **Virtual Tour Experience**
+- **Immersive Jantar Mantar walkthrough** with authentic 3D environments
+- **Guided historical narration** explaining each yantra's purpose and usage
+- **Interactive hotspots** revealing mathematical principles and cultural context
+- **Time-travel feature** showing how shadows move throughout the day
+- **Multi-observatory experience** - Delhi, Jaipur, Ujjain, Mathura, Varanasi
+
 ### 📐 **2D Blueprint Generator**
 - **Technical drawings** with precise measurements
 - **CAD-compatible exports** (PNG, SVG, PDF)
@@ -204,11 +212,13 @@ DIGIYANTRA/
 │   │   ├── components/
 │   │   │   ├── YantraViewer3D.js     # Three.js 3D renderer
 │   │   │   ├── YantraViewer2D.js     # Canvas 2D blueprints
-│   │   │   └── CelestialAnimation.js # Sky simulation
+│   │   │   ├── CelestialAnimation.js # Sky simulation
+│   │   │   └── VirtualTour.js        # 360° immersive tours
 │   │   ├── pages/
 │   │   │   ├── HomePage.js           # Landing page
 │   │   │   ├── YantraGeneratorFull.js # Main generator
-│   │   │   └── Learn.js              # Educational content
+│   │   │   ├── Learn.js              # Educational content
+│   │   │   └── VirtualTourPage.js    # Jantar Mantar virtual tours
 │   │   └── store/
 │   │       ├── yantraSlice.js        # State management
 │   │       └── uiSlice.js           # UI state
@@ -291,13 +301,38 @@ def test_samrat_yantra_accuracy():
     assert abs(shadow_length - expected_length) < 0.01
 ```
 
+### 🚶 **Virtual Tour Implementation**
+```javascript
+// Example: Interactive Jantar Mantar Virtual Tour
+const virtualTour = new JantarMantarTour({
+  observatory: 'delhi',  // Delhi, Jaipur, Ujjain, Mathura, Varanasi
+  startPoint: 'entrance',
+  features: {
+    '360_panorama': true,
+    'guided_narration': true,
+    'time_simulation': true,
+    'shadow_animation': true,
+    'historical_overlay': true
+  }
+});
+
+// Tour waypoints with educational content
+virtualTour.addWaypoint('samrat_yantra', {
+  position: { x: 0, y: 0, z: 0 },
+  title: "The Great Sundial - Samrat Yantra",
+  narration: "Built in 1724, this massive sundial can tell time to 2-minute accuracy...",
+  interactives: ['shadow_movement', 'time_calculation', 'latitude_demo']
+});
+```
+
 ## 🎓 Educational Impact
 
 ### 🏫 **For Educational Institutions**
 - **STEM curriculum integration** with Indian heritage
 - **Interactive learning modules** for astronomy concepts
-- **Virtual field trips** to Jantar Mantar observatories
+- **Virtual field trips** to Jantar Mantar observatories with immersive 360° tours
 - **Assessment tools** for student evaluation
+- **Virtual heritage walks** eliminating travel costs and accessibility barriers
 
 ### 👨‍🎓 **For Students & Educators**
 - **Hands-on experience** with ancient scientific instruments

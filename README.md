@@ -32,7 +32,7 @@ Ancient Indian astronomical instruments (yantras) were marvels of precision engi
 ## 📸 Application Screenshots
 
 ### 🏠 Homepage - Heritage Meets Technology
-![DIGIYANTRA Homepage](frontend/public/images/yantra-generator.png)
+![DIGIYANTRA Homepage](frontend/public/images/homepage.png)
 *Modern interface showcasing ancient astronomical wisdom*
 
 ### ⚙️ Yantra Generator - Precision Engineering

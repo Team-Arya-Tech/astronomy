@@ -34,6 +34,7 @@ import {
   Insights,
   Engineering
 } from '@mui/icons-material';
+import RollingGallery from '../components/RollingGallery';
 
 const Documentation = () => {
   const researchPhases = [
@@ -127,8 +128,6 @@ const Documentation = () => {
         
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap', mb: 4 }}>
           <Chip icon={<LocationOn />} label="Delhi, India" sx={{ bgcolor: 'rgba(255,215,0,0.2)', color: '#FFD700' }} />
-          <Chip icon={<AccessTime />} label="October 12, 2024" sx={{ bgcolor: 'rgba(255,215,0,0.2)', color: '#FFD700' }} />
-          <Chip icon={<PhotoCamera />} label="50+ Images Captured" sx={{ bgcolor: 'rgba(255,215,0,0.2)', color: '#FFD700' }} />
           <Chip icon={<Architecture />} label="4 Instruments Studied" sx={{ bgcolor: 'rgba(255,215,0,0.2)', color: '#FFD700' }} />
         </Box>
       </Box>
@@ -151,6 +150,24 @@ const Documentation = () => {
             construction techniques, operational principles, and mathematical precision of these 300-year-old astronomical instruments. 
             This field work forms the foundation of our digital reconstruction algorithms and ensures historical accuracy in our platform.
           </Typography>
+        </CardContent>
+      </Card>
+
+      {/* Photo Gallery */}
+      <Card elevation={4} sx={{ mb: 6, bgcolor: 'rgba(245, 245, 220, 0.95)' }}>
+        <CardContent sx={{ p: 2 }}>
+          <Typography variant="h5" gutterBottom sx={{ color: '#D4AF37', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+            <Camera />
+            Photo Documentation
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'white', mb: 2, fontSize: '1rem', textAlign: 'center' }}>
+            Field research photographs from our visit to Jantar Mantar, Delhi
+          </Typography>
+          
+          {/* Rolling Gallery Component */}
+          <Box sx={{ my: 2 }}>
+            <RollingGallery autoplay={true} pauseOnHover={true} />
+          </Box>
         </CardContent>
       </Card>
 
@@ -203,9 +220,6 @@ const Documentation = () => {
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="h6" sx={{ color: '#FFD700', fontWeight: 'bold' }}>
                     {phase.title}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#D4AF37', display: 'block', mb: 2 }}>
-                    {phase.date}
                   </Typography>
                   
                   <Paper elevation={2} sx={{ p: 3, bgcolor: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}>
@@ -328,41 +342,6 @@ const Documentation = () => {
               </Typography>
             </AccordionDetails>
           </Accordion>
-        </CardContent>
-      </Card>
-
-      {/* Photo Gallery Placeholder */}
-      <Card elevation={4} sx={{ mb: 6, bgcolor: 'rgba(245, 245, 220, 0.95)' }}>
-        <CardContent sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h4" gutterBottom sx={{ color: '#D4AF37', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <Camera />
-            Photo Documentation
-          </Typography>
-          <Typography variant="body1" sx={{ color: 'white', mb: 3, fontSize: '1.1rem' }}>
-            Comprehensive photographic documentation of all instruments, architectural details, and shadow patterns
-          </Typography>
-          
-          <Box
-            sx={{
-              height: 300,
-              bgcolor: 'rgba(255,215,0,0.1)',
-              border: '2px dashed #FFD700',
-              borderRadius: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'column',
-              gap: 2
-            }}
-          >
-            <PhotoCamera sx={{ fontSize: 60, color: '#FFD700' }} />
-            <Typography variant="h6" sx={{ color: '#FFD700' }}>
-              Image Gallery Coming Soon
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'white' }}>
-              50+ High-resolution photographs and technical diagrams will be displayed here
-            </Typography>
-          </Box>
         </CardContent>
       </Card>
 

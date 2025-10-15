@@ -208,7 +208,7 @@ const YantraViewer2D = ({ yantraType, specs, astronomicalData }) => {
       if (showDimensions) {
         ctx.fillStyle = '#4169E1';
         ctx.font = '10px Arial';
-        ctx.fillText(`Gnomon: ${gnomonAngle.toFixed(1)}°`, centerX + 10, centerY - baseWidth/2 - 20);
+        ctx.fillText(`Gnomon: ${gnomonAngle.toFixed(1)}°`, centerX + 10, centerY - baseWidth/2 - 50);
       }
       
     } else if (viewMode === 'side') {
@@ -1749,7 +1749,7 @@ const YantraViewer2D = ({ yantraType, specs, astronomicalData }) => {
     // Title
     ctx.fillStyle = '#654321';
     ctx.font = 'bold 14px Arial';
-    ctx.fillText('YANTRA.AI', x + 10, y + 20);
+    ctx.fillText('DigiYantra', x + 10, y + 20);
     
     ctx.font = '12px Arial';
     ctx.fillText(`Type: ${yantraType?.replace('_', ' ') || 'Unknown'}`, x + 10, y + 40);

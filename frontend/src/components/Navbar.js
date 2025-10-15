@@ -50,7 +50,7 @@ const Navbar = () => {
     { label: 'Generator', path: '/generator' },
     { label: 'Learn', path: '/learn' },
     { label: 'AI Decoder', path: '/ai' },
-    { label: 'VR Experience', path: '/ar' },
+    { label: 'Virtual Tour', path: '/ar' },
     { label: 'Documentation', path: '/docs' },
     { label: 'About', path: '/about' }
   ];
@@ -74,13 +74,12 @@ const Navbar = () => {
             component="div" 
             sx={{ 
               fontWeight: 'bold',
-              background: theme.palette.mode === 'dark' 
-                ? 'linear-gradient(45deg, #D4AF37 30%, #F4E4BC 90%)'
-                : 'linear-gradient(45deg, #8B4513 30%, #CD853F 90%)',
+              background: 'linear-gradient(45deg, #FFD700 0%, #FFA500 15%, #FFFF00 30%, #FFD700 45%, #DAA520 60%, #FFA500 75%, #FFD700 90%, #FFFF66 100%)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              textShadow: '1px 1px 2px rgba(255,215,0,0.2)'
             }}
             onClick={() => navigate('/')}
           >

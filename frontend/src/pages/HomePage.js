@@ -108,12 +108,13 @@ const HomePage = () => {
             sx={{
               fontSize: { xs: '3rem', md: '5rem' },
               fontWeight: 'bold',
-              background: 'linear-gradient(45deg, #CD7F32 0%, #B87333 20%, #DAA520 40%, #CD7F32 60%, #8B4513 80%, #A0522D 100%)',
+              background: 'linear-gradient(45deg, #FFD700 0%, #FFA500 15%, #FFFF00 30%, #FFD700 45%, #DAA520 60%, #FFA500 75%, #FFD700 90%, #FFFF66 100%)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               mb: 2,
-              letterSpacing: '0.1em'
+              letterSpacing: '0.1em',
+              textShadow: '2px 2px 4px rgba(255,215,0,0.3)'
             }}
           >
             DIGIYANTRA

@@ -21,7 +21,7 @@ const Footer = () => {
     >
       <Container maxWidth="lg">
         <Typography variant="body1" align="center" sx={{ mb: 1 }}>
-          🌌 YANTRA.AI - Reviving Ancient Science with AI Precision
+          🌌 DIGIYANTRA - Reviving Ancient Science with AI Precision
         </Typography>
         <Typography variant="body2" align="center" color="rgba(255, 255, 255, 0.7)">
           Smart India Hackathon 2025 • Ancient Indian Astronomical Instruments Generator

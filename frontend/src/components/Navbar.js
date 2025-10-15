@@ -51,7 +51,7 @@ const Navbar = () => {
     { label: 'Learn', path: '/learn' },
     { label: 'AI Decoder', path: '/ai' },
     { label: 'Virtual Tour', path: '/ar' },
-    { label: 'Documentation', path: '/docs' },
+    { label: 'On Ground Research', path: '/docs' },
     { label: 'About', path: '/about' }
   ];
 

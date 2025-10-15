@@ -17,7 +17,9 @@ import {
   Divider,
   Button,
   useTheme,
-  alpha
+  alpha,
+  MobileStepper,
+  IconButton
 } from '@mui/material';
 import {
   ExpandMore,
@@ -26,7 +28,9 @@ import {
   Image,
   Description,
   Settings,
-  Download
+  Download,
+  KeyboardArrowLeft,
+  KeyboardArrowRight
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +39,7 @@ const Learn = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [selectedYantra, setSelectedYantra] = useState(0);
+  const [activeImageStep, setActiveImageStep] = useState(0);
 
   // Comprehensive yantra information
   const yantras = [
@@ -180,7 +185,11 @@ const Learn = () => {
       name: 'Rama Yantra',
       subtitle: 'Cylindrical Coordinate Instrument',
       category: 'Altitude-Azimuth',
-      image: '/images/rama-yantra.jpg',
+      image: '/images/rama-yantra-1.jpg',
+      images: [
+        '/images/rama-yantra-1.jpg',
+        '/images/rama-yantra-2.jpg'
+      ],
       description: 'The Rama Yantra consists of cylindrical structures with radial walls forming sectors. It measures both altitude (elevation above horizon) and azimuth (compass direction) of celestial objects. A central pillar or sighting mechanism allows observers to track the position of the sun, moon, and stars in a cylindrical coordinate system.',
       
       howItWorks: {
@@ -1720,9 +1729,54 @@ const Learn = () => {
 
   const handleYantraChange = (event, newValue) => {
     setSelectedYantra(newValue);
+    setActiveImageStep(0); // Reset image carousel when changing yantras
   };
 
   const currentYantra = yantras[selectedYantra];
+  const maxImageSteps = currentYantra.images ? currentYantra.images.length : 1;
+
+  const handleNextImage = () => {
+    setActiveImageStep((prevStep) => (prevStep + 1) % maxImageSteps);
+  };
+
+  const handleBackImage = () => {
+    setActiveImageStep((prevStep) => (prevStep - 1 + maxImageSteps) % maxImageSteps);
+  };
+
+  const getCurrentImage = () => {
+    if (currentYantra.images && currentYantra.images.length > 0) {
+      return currentYantra.images[activeImageStep];
+    }
+    return currentYantra.image;
+  };
+
+  // Touch/Swipe support for mobile
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe) {
+      handleNextImage();
+    } else if (isRightSwipe) {
+      handleBackImage();
+    }
+  };
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -1813,19 +1867,119 @@ const Learn = () => {
             transition={{ duration: 0.5 }}
           >
             <Card elevation={4} sx={{ mb: 3, borderRadius: 2 }}>
-              <CardMedia
-                component="img"
-                height="300"
-                image={currentYantra.image}
-                alt={currentYantra.name}
-                sx={{ 
-                  backgroundColor: alpha('#d4af37', 0.1),
-                  objectFit: 'cover'
-                }}
-                onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/600x300?text=' + currentYantra.name;
-                }}
-              />
+              <Box 
+                sx={{ position: 'relative' }}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+              >
+                <CardMedia
+                  component="img"
+                  height="300"
+                  image={getCurrentImage()}
+                  alt={currentYantra.name}
+                  sx={{ 
+                    backgroundColor: alpha('#d4af37', 0.1),
+                    objectFit: 'cover',
+                    userSelect: 'none'
+                  }}
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/600x300?text=' + currentYantra.name;
+                  }}
+                />
+                
+                {/* Image Carousel Controls - Only show if multiple images */}
+                {currentYantra.images && currentYantra.images.length > 1 && (
+                  <>
+                    {/* Navigation Buttons */}
+                    <IconButton
+                      onClick={handleBackImage}
+                      sx={{
+                        position: 'absolute',
+                        left: 8,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        backgroundColor: alpha('#000', 0.5),
+                        color: '#fff',
+                        '&:hover': {
+                          backgroundColor: alpha('#000', 0.7),
+                        }
+                      }}
+                    >
+                      <KeyboardArrowLeft />
+                    </IconButton>
+                    
+                    <IconButton
+                      onClick={handleNextImage}
+                      sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        backgroundColor: alpha('#000', 0.5),
+                        color: '#fff',
+                        '&:hover': {
+                          backgroundColor: alpha('#000', 0.7),
+                        }
+                      }}
+                    >
+                      <KeyboardArrowRight />
+                    </IconButton>
+
+                    {/* Image Counter */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: 8,
+                        right: 8,
+                        backgroundColor: alpha('#000', 0.6),
+                        color: '#fff',
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      {activeImageStep + 1} / {maxImageSteps}
+                    </Box>
+
+                    {/* Image Indicator Dots */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: 8,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex',
+                        gap: 1
+                      }}
+                    >
+                      {currentYantra.images.map((_, index) => (
+                        <Box
+                          key={index}
+                          onClick={() => setActiveImageStep(index)}
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: index === activeImageStep 
+                              ? '#d4af37' 
+                              : alpha('#fff', 0.5),
+                            cursor: 'pointer',
+                            transition: 'all 0.3s',
+                            '&:hover': {
+                              backgroundColor: index === activeImageStep 
+                                ? '#d4af37' 
+                                : alpha('#fff', 0.8),
+                            }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </>
+                )}
+              </Box>
+              
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Chip 
